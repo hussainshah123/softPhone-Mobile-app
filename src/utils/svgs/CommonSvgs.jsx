@@ -725,3 +725,22 @@ export const FilterIcon = ({...props}) => (
     <Path d="M7 12V10H11V12H7ZM3 7V5H15V7H3ZM0 2V0H18V2H0Z" fill="#5B403E" />
   </Svg>
 );
+
+
+
+
+export const LoginIcon = ({...props}) => (
+  <Svg
+    width={props.width || 15}
+    height={props.height || 15}
+    viewBox="0 0 15 15"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <Path
+      d="M7.5 15V13.3333H13.3333V1.66667H7.5V0H13.3333C13.7917 0 14.184 0.163194 14.5104 0.489583C14.8368 0.815972 15 1.20833 15 1.66667V13.3333C15 13.7917 14.8368 14.184 14.5104 14.5104C14.184 14.8368 13.7917 15 13.3333 15H7.5ZM5.83333 11.6667L4.6875 10.4583L6.8125 8.33333H0V6.66667H6.8125L4.6875 4.54167L5.83333 3.33333L10 7.5L5.83333 11.6667Z"
+      fill={props.fill || "white"}
+    />
+  </Svg>
+);

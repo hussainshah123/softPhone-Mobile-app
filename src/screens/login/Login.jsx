@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch } from 'react-native'
 import React, { useState } from 'react'
-import { EyeOpenIcon, EyeCloseIcon, SipIcon } from '../../utils/svgs/CommonSvgs'
+import { EyeOpenIcon, EyeCloseIcon, SipIcon, LoginIcon } from '../../utils/svgs/CommonSvgs'
 
 const Login = ({ navigation }) => {
     const [formData, setFormData] = useState({
@@ -43,7 +43,7 @@ const Login = ({ navigation }) => {
 
                 <View style={styles.iconContainer}>
                     <View style={styles.sipIcon}>
-                        <SipIcon/>
+                        <SipIcon />
                     </View>
                 </View>
 
@@ -128,7 +128,9 @@ const Login = ({ navigation }) => {
 
                 <TouchableOpacity style={styles.button} onPress={handleLogin}>
                     <Text style={styles.buttonText}>Login</Text>
-                    <Text style={styles.arrow}>→</Text>
+                    <View style={styles.arrow}>
+                        <LoginIcon />
+                    </View>
                 </TouchableOpacity>
             </View>
 
@@ -141,15 +143,15 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         paddingHorizontal: 30,
-        backgroundColor:"#D3DAEA",
+        backgroundColor: "#D3DAEA",
 
     },
-    innerContainer:{
+    innerContainer: {
         backgroundColor: '#FFFFFF',
 
-        paddingVertical:10,
-        paddingHorizontal:30,
-        borderRadius:10
+        paddingVertical: 10,
+        paddingHorizontal: 30,
+        borderRadius: 10
     },
     iconContainer: {
         alignItems: 'center',
