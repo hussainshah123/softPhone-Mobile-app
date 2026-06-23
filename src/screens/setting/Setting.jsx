@@ -129,7 +129,6 @@ const Setting = () => {
                         </View>
                     </TouchableOpacity>
                 </View>
-
                 {/* APP Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>APP</Text>
