@@ -40,6 +40,12 @@ const Slider = ({ navigation }) => {
         navigation.navigate('Login')
     }
 
+    const handleScroll = (event) => {
+        const slideSize = event.nativeEvent.layoutMeasurement.width
+        const index = Math.round(event.nativeEvent.contentOffset.x / slideSize)
+        setCurrentSlide(index)
+    }
+
     return (
         <View style={style.container}>
             <ScrollView
@@ -47,7 +53,8 @@ const Slider = ({ navigation }) => {
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
-                scrollEnabled={false}
+                onMomentumScrollEnd={handleScroll}
+                decelerationRate="fast"
                 style={style.scrollView}
             >
                 {slides.map((slide, index) => (
