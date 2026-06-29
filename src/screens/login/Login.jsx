@@ -5,10 +5,10 @@ import { registerSIP } from '../../services/sipService'
 
 const Login = ({ navigation }) => {
     const [formData, setFormData] = useState({
-        sipUsername: 'fortdice',
-        sipPassword: 'fortdice@$',
-        sipServer: '45.9.188.64',
-        port: '5060',
+        sipUsername: '',
+        sipPassword: '',
+        sipServer: '',
+        port: '',
     })
     const [errors, setErrors] = useState({})
     const [showPassword, setShowPassword] = useState(false)
