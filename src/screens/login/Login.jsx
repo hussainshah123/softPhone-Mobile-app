@@ -1,17 +1,19 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch } from 'react-native'
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
 import { EyeOpenIcon, EyeCloseIcon, SipIcon, LoginIcon } from '../../utils/svgs/CommonSvgs'
+import { registerSIP } from '../../services/sipService'
 
 const Login = ({ navigation }) => {
     const [formData, setFormData] = useState({
-        sipUsername: '',
-        sipPassword: '',
-        sipServer: '',
+        sipUsername: 'fortdice',
+        sipPassword: 'fortdice@$',
+        sipServer: '45.9.188.64',
         port: '5060',
     })
     const [errors, setErrors] = useState({})
     const [showPassword, setShowPassword] = useState(false)
     const [rememberMe, setRememberMe] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     const validateForm = () => {
         const newErrors = {}
@@ -31,9 +33,34 @@ const Login = ({ navigation }) => {
         return Object.keys(newErrors).length === 0
     }
 
-    const handleLogin = () => {
-        if (validateForm()) {
-            navigation.navigate('IncommingCall')
+    const handleLogin = async () => {
+        if (!validateForm()) {
+            return
+        }
+
+        setLoading(true)
+        console.log('[SIP] Login attempt started', {
+            username: formData.sipUsername,
+            server: formData.sipServer,
+            port: formData.port,
+        })
+
+        try {
+            const response = await registerSIP(
+                formData.sipUsername,
+                formData.sipPassword,
+                formData.sipServer,
+                formData.port
+            )
+            console.log('[SIP] Login successful:', response)
+            setLoading(false)
+            Alert.alert('Registration Success', response, [
+                { text: 'OK', onPress: () => navigation.navigate('BottomTabs') }
+            ])
+        } catch (error) {
+            console.error('[SIP] Login failed:', error?.message || error)
+            setLoading(false)
+            Alert.alert('Registration Failed', error?.message || 'Check your SIP server credentials and try again.')
         }
     }
 
@@ -126,11 +153,21 @@ const Login = ({ navigation }) => {
                     />
                 </View>
 
-                <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                    <Text style={styles.buttonText}>Login</Text>
-                    <View style={styles.arrow}>
-                        <LoginIcon />
-                    </View>
+                <TouchableOpacity 
+                    style={[styles.button, loading && styles.buttonDisabled]} 
+                    onPress={handleLogin}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                        <>
+                            <Text style={styles.buttonText}>Login</Text>
+                            <View style={styles.arrow}>
+                                <LoginIcon />
+                            </View>
+                        </>
+                    )}
                 </TouchableOpacity>
             </View>
 
@@ -237,6 +274,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    buttonDisabled: {
+        backgroundColor: '#A0A0A0',
     },
     buttonText: {
         color: '#FFFFFF',
