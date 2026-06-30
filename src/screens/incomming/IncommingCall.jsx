@@ -1,35 +1,98 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { PhoneAcceptIcon, PhoneDeclineIcon } from '../../utils/svgs/CommonSvgs'
+import { answerCall, declineCall, hangupCall, onCallState } from '../../services/sipService'
 
-const IncommingCall = ({ navigation }) => {
+const IncommingCall = ({ route, navigation }) => {
+  const { phoneNumber, callerName, destination } = route.params || {}
+  const displayName = callerName || phoneNumber || 'Incoming Call'
+  const callDestination = destination || phoneNumber || ''
+  const [callStatus, setCallStatus] = useState('Incoming Call...')
+
+  useEffect(() => {
+    const unsubscribe = onCallState((event) => {
+      if (event?.state === 'connected') {
+        setCallStatus('Connected')
+      } else if (event?.state === 'ended' || event?.state === 'failed') {
+        navigation.replace('BottomTabs')
+      }
+    })
+
+    return unsubscribe
+  }, [navigation])
+
+  const handleDecline = async () => {
+    try {
+      await declineCall()
+    } catch (error) {
+      console.error('[SIP] Decline failed:', error?.message || error)
+    } finally {
+      navigation.replace('BottomTabs')
+    }
+  }
+
+  const handleAccept = async () => {
+    try {
+      await answerCall()
+      setCallStatus('Connected')
+    } catch (error) {
+      console.error('[SIP] Answer failed:', error?.message || error)
+      navigation.replace('BottomTabs')
+    }
+  }
+
+  const handleEndCall = async () => {
+    try {
+      await hangupCall()
+    } catch (error) {
+      console.error('[SIP] Hangup failed:', error?.message || error)
+    } finally {
+      navigation.replace('BottomTabs')
+    }
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.incomingText}>Incoming Call...</Text>
+      <Text style={styles.incomingText}>{callStatus}</Text>
 
       <View style={styles.avatarContainer}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>JD</Text>
+          <Text style={styles.avatarText}>{displayName.substring(0, 2).toUpperCase()}</Text>
         </View>
       </View>
 
-      <Text style={styles.name}>Jane Doe</Text>
-      <Text style={styles.sipAddress}>sip:jane.doe@company.com</Text>
+      <Text style={styles.name}>{displayName}</Text>
+      {callDestination ? (
+        <Text style={styles.sipAddress}>
+          {callDestination.length > 15 ? callDestination.substring(0, 15) + '...' : callDestination}
+        </Text>
+      ) : null}
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.declineButton} onPress={() => navigation.replace('BottomTabs')}>
-          <View style={[styles.iconContainer, styles.declineIconBackground]}>
-            <PhoneDeclineIcon width={32} height={32} />
-          </View>
-          <Text style={styles.declineText}>Decline</Text>
-        </TouchableOpacity>
+        {callStatus === 'Connected' ? (
+          <TouchableOpacity style={styles.declineButton} onPress={handleEndCall}>
+            <View style={[styles.iconContainer, styles.declineIconBackground]}>
+              <PhoneDeclineIcon width={32} height={32} />
+            </View>
+            <Text style={styles.declineText}>End Call</Text>
+          </TouchableOpacity>
+        ) : (
+          <>
+            <TouchableOpacity style={styles.declineButton} onPress={handleDecline}>
+              <View style={[styles.iconContainer, styles.declineIconBackground]}>
+                <PhoneDeclineIcon width={32} height={32} />
+              </View>
+              <Text style={styles.declineText}>Decline</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.acceptButton}>
-          <View style={[styles.iconContainer, styles.acceptIconBackground]}>
-            <PhoneAcceptIcon width={32} height={32} />
-          </View>
-          <Text style={styles.acceptText}>Accept</Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={styles.acceptButton} onPress={handleAccept}>
+              <View style={[styles.iconContainer, styles.acceptIconBackground]}>
+                <PhoneAcceptIcon width={32} height={32} />
+              </View>
+              <Text style={styles.acceptText}>Accept</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   )
@@ -72,7 +135,7 @@ const styles = StyleSheet.create({
   sipAddress: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 60,
+    marginBottom: 20,
   },
   buttonContainer: {
     flexDirection: 'row',

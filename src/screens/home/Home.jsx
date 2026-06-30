@@ -1,10 +1,44 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ScrollView, Image } from 'react-native'
-import React from 'react'
-import { NotificationIcon, CallIcon, ContactIcon, MessageIcon, VoiceMailIcon, AntinaIcon, GreenIcon, RightArrowIcon, MicIcon } from '../../utils/svgs/CommonSvgs'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { NotificationIcon, CallIcon, ContactIcon, MessageIcon, VoiceMailIcon, AntinaIcon, GreenIcon, RightArrowIcon } from '../../utils/svgs/CommonSvgs'
 import Header from '../../components/Header'
+import { onRegistrationState } from '../../services/sipService'
 
 const Home = ({ navigation }) => {
-    
+    const [registrationStatus, setRegistrationStatus] = useState({
+        state: 'unknown',
+        message: 'Checking SIP status...',
+    })
+    const [sipUsername, setSipUsername] = useState('')
+
+    useEffect(() => {
+        const loadCredentials = async () => {
+            try {
+                const credentials = await AsyncStorage.getItem('sipCredentials')
+                if (credentials) {
+                    const parsed = JSON.parse(credentials)
+                    setSipUsername(parsed.username || '')
+                }
+            } catch (error) {
+                console.error('[SIP] Failed to load credentials:', error)
+            }
+        }
+
+        loadCredentials()
+
+        const unsubscribe = onRegistrationState((event) => {
+            setRegistrationStatus({
+                state: event?.state || 'unknown',
+                message: event?.message || '',
+            })
+        })
+
+        return unsubscribe
+    }, [])
+
+    const isRegistered = registrationStatus.state === 'registered'
+
     const recentCalls = [
         {
             id: '1',
@@ -33,7 +67,7 @@ const Home = ({ navigation }) => {
     ]
 
     const renderRecentCall = (item) => (
-        <View style={styles.callItem}>
+        <View key={item.id} style={styles.callItem}>
             <View style={styles.avatar}>
                 <Text style={styles.avatarText}>{item.initials}</Text>
             </View>
@@ -80,12 +114,14 @@ const Home = ({ navigation }) => {
                     <AntinaIcon />
                     <View>
                         <View style={styles.registerHeader}>
-                            <GreenIcon />
-                            <Text style={styles.registerText}>Registered & Ready</Text>
+                            {isRegistered ? <GreenIcon /> : null}
+                            <Text style={styles.registerText}>
+                                {isRegistered ? 'Registered & Ready' : 'Not Registered'}
+                            </Text>
                         </View>
-                        <Text style={styles.registerSubText}>Extension 1004 • SIP Connected</Text>
-
-
+                        <Text style={styles.registerSubText}>
+                            {sipUsername ? `${sipUsername} • ${registrationStatus.message}` : registrationStatus.message}
+                        </Text>
                     </View>
                     <TouchableOpacity>
                         <RightArrowIcon />
@@ -131,10 +167,6 @@ const Home = ({ navigation }) => {
 
                 {recentCalls.map((item) => renderRecentCall(item))}
             </ScrollView>
-            {/* 
-            <TouchableOpacity style={styles.fab}>
-                <Text style={styles.fabIcon}>📞</Text>
-            </TouchableOpacity> */}
         </View>
     )
 }
@@ -142,44 +174,12 @@ const Home = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // backgroundColor: '#D3DAEA',
     },
     headerAvatar: {
         width: 32,
         height: 32,
         borderRadius: 16,
         marginRight: 8,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 10,
-        paddingTop: 20,
-        paddingBottom: 20,
-    },
-    headerTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#B61723',
-    },
-    menuButton: {
-        padding: 10,
-    },
-    menuIcon: {
-        fontSize: 24,
-        color: '#575F66',
-    },
-    searchContainer: {
-        paddingHorizontal: 20,
-        marginBottom: 20,
-    },
-    searchInput: {
-        height: 50,
-        backgroundColor: '#F5F5F5',
-        borderRadius: 25,
-        paddingHorizontal: 20,
-        fontSize: 16,
     },
     content: {
         flex: 1,
@@ -222,7 +222,6 @@ const styles = StyleSheet.create({
     },
     quickActionItem: {
         backgroundColor: "white",
-        // gap: 10,
         paddingVertical: 20,
         borderRadius: 10,
         marginHorizontal: 10,
@@ -237,9 +236,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 8,
-    },
-    quickActionEmoji: {
-        fontSize: 24,
     },
     quickActionText: {
         fontSize: 12,
@@ -324,25 +320,6 @@ const styles = StyleSheet.create({
     callTypeText: {
         fontSize: 14,
         fontWeight: 'bold',
-    },
-    fab: {
-        position: 'absolute',
-        bottom: 30,
-        right: 20,
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: '#B61723',
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#B61723',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-    fabIcon: {
-        fontSize: 24,
     },
 })
 

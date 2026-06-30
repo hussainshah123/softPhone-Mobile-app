@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { EyeOpenIcon, EyeCloseIcon, SipIcon, LoginIcon } from '../../utils/svgs/CommonSvgs'
 import { registerSIP } from '../../services/sipService'
 
@@ -52,6 +53,14 @@ const Login = ({ navigation }) => {
                 formData.sipServer,
                 formData.port
             )
+            
+            await AsyncStorage.setItem('sipCredentials', JSON.stringify({
+                username: formData.sipUsername,
+                password: formData.sipPassword,
+                server: formData.sipServer,
+                port: formData.port,
+            }))
+            
             console.log('[SIP] Login successful:', response)
             setLoading(false)
             Alert.alert('Registration Success', response, [

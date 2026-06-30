@@ -4,6 +4,7 @@ import Splash from '../screens/splashscreen/Splash'
 import Slider from '../screens/slider/Slider'
 import Login from '../screens/login/Login'
 import IncommingCall from '../screens/incomming/IncommingCall'
+import OutgoingCall from '../screens/outgoing/OutgoingCall'
 import VoiceMail from '../screens/voisemail/VoiceMail'
 import RecentCallHistory from '../screens/home/RecentCallHistory'
 import Bottom from './Bottom'
@@ -24,6 +25,9 @@ const Stack = () => {
             <StacKNavigation.Screen options={{
                 headerShown: false
             }} name="IncommingCall" component={IncommingCall} />
+            <StacKNavigation.Screen options={{
+                headerShown: false
+            }} name="OutgoingCall" component={OutgoingCall} />
             <StacKNavigation.Screen options={{
                 headerShown: false
             }} name="VoiceMail" component={VoiceMail} />

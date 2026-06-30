@@ -1,10 +1,28 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { CallIcon, BackspaceIcon, NotificationIcon } from '../../utils/svgs/CommonSvgs'
 import Header from '../../components/Header'
+import { makeCall } from '../../services/sipService'
 
-const DialPad = () => {
+const DialPad = ({ navigation }) => {
     const [phoneNumber, setPhoneNumber] = useState('')
+    const [sipCredentials, setSipCredentials] = useState(null)
+
+    useEffect(() => {
+        loadCredentials()
+    }, [])
+
+    const loadCredentials = async () => {
+        try {
+            const credentials = await AsyncStorage.getItem('sipCredentials')
+            if (credentials) {
+                setSipCredentials(JSON.parse(credentials))
+            }
+        } catch (error) {
+            console.error('Failed to load SIP credentials:', error)
+        }
+    }
 
     const dialPadNumbers = [
         { number: '1', letters: '' },
@@ -31,6 +49,35 @@ const DialPad = () => {
 
     const handleClear = () => {
         setPhoneNumber('')
+    }
+
+    const handleCall = async () => {
+        if (!phoneNumber) {
+            Alert.alert('Error', 'Please enter a number to call')
+            return
+        }
+        if (!sipCredentials) {
+            Alert.alert('Error', 'Please login with SIP credentials first')
+            return
+        }
+
+        navigation.getParent()?.navigate('OutgoingCall', {
+            phoneNumber,
+            callerName: phoneNumber,
+        })
+
+        try {
+            await makeCall(
+                sipCredentials.username,
+                sipCredentials.password,
+                sipCredentials.server,
+                sipCredentials.port,
+                phoneNumber
+            )
+        } catch (error) {
+            Alert.alert('Call Failed', error.message)
+            navigation.getParent()?.navigate('BottomTabs')
+        }
     }
 
     return (
@@ -76,7 +123,7 @@ const DialPad = () => {
                 ))}
             </View>
 
-            <TouchableOpacity style={styles.callButton}>
+            <TouchableOpacity style={styles.callButton} onPress={handleCall}>
                 <CallIcon width={32} height={32} fill="white" />
             </TouchableOpacity>
         </View>
