@@ -35,7 +35,7 @@ const ensureNativeModule = async () => {
         const nativeVersion = await SipRegistration.getVersion()
         log('Native SIP module version:', nativeVersion)
 
-        if (String(nativeVersion) !== '5') {
+        if (String(nativeVersion) !== '6') {
             throw new Error(
                 `Outdated native SIP module (v${nativeVersion}). Run: cd android && gradlew clean && cd .. && npx react-native run-android`
             )
@@ -178,4 +178,18 @@ export const declineCall = async () => {
         return
     }
     await SipRegistration.declineCall()
+}
+
+export const toggleSpeaker = async () => {
+    if (!SipRegistration?.toggleSpeaker) {
+        return false
+    }
+    return SipRegistration.toggleSpeaker()
+}
+
+export const toggleMute = async () => {
+    if (!SipRegistration?.toggleMute) {
+        return false
+    }
+    return SipRegistration.toggleMute()
 }

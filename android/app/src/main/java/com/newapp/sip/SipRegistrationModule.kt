@@ -20,6 +20,8 @@ class SipRegistrationModule(private val reactContext: ReactApplicationContext) :
 
     override fun invalidate() {
         SipSession.setReactContext(null)
+        RtpAudioManager.stop()
+        RingtoneHelper.stop()
         super.invalidate()
     }
 
@@ -135,12 +137,31 @@ class SipRegistrationModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun toggleSpeaker(promise: Promise) {
+        try {
+            val context = reactContext.applicationContext
+            val newState = RtpAudioManager.toggleSpeaker(context)
+            promise.resolve(newState)
+        } catch (error: Exception) {
+            promise.reject("SIP_SPEAKER_FAILED", error.message ?: "Toggle speaker failed", error)
+        }
+    }
+
+    @ReactMethod
+    fun toggleMute(promise: Promise) {
+        try {
+            val newState = RtpAudioManager.toggleMute()
+            promise.resolve(newState)
+        } catch (error: Exception) {
+            promise.reject("SIP_MUTE_FAILED", error.message ?: "Toggle mute failed", error)
+        }
+    }
+
+    @ReactMethod
     fun addListener(eventName: String) {
-        // Required for NativeEventEmitter on Android
     }
 
     @ReactMethod
     fun removeListeners(count: Int) {
-        // Required for NativeEventEmitter on Android
     }
 }

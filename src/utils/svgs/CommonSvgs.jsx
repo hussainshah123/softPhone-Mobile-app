@@ -744,3 +744,35 @@ export const LoginIcon = ({...props}) => (
     />
   </Svg>
 );
+
+export const SpeakerIcon = ({...props}) => (
+  <Svg
+    width={props.width || 24}
+    height={props.height || 24}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <Path
+      d="M3 10V14H7L12 18V6L7 10H3ZM16 12C16 10.9 15.6 9.95 14.85 9.25L14.15 8.55C15.05 7.65 15.6 6.5 15.6 5.25C15.6 3.95 14.9 2.8 13.85 2.15V15.85C14.9 15.2 15.6 14.05 15.6 12.75V12ZM12 4V2C14.2 2 16 3.8 16 6C16 8.2 14.2 10 12 10V8C13.1 8 14 7.1 14 6C14 4.9 13.1 4 12 4V4Z"
+      fill={props.fill || "#575F66"}
+    />
+  </Svg>
+);
+
+export const MuteIcon = ({...props}) => (
+  <Svg
+    width={props.width || 24}
+    height={props.height || 24}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <Path
+      d="M12 4V2C14.2 2 16 3.8 16 6C16 8.2 14.2 10 12 10V8C13.1 8 14 7.1 14 6C14 4.9 13.1 4 12 4V4ZM7 13H5C3.9 13 3 12.1 3 11C3 9.9 3.9 9 5 9H7V13ZM12 22C14.2 22 16 20.2 16 18C16 15.8 14.2 14 12 14V16C14.1 16 15.1 16.4 15.7 17.15C16.3 17.9 16.6 18.8 16.6 19.75C16.6 20.8 15.7 21.7 14.6 21.95V22H12V22ZM18 11C19.1 11 20 10.1 20 9C20 7.9 19.1 7 18 7V11ZM7.5 2C6.1 2 5 3.1 5 4.5C5 5.9 6.1 7 7.5 7V5.5C7.5 4.1 6.4 3 5 3V2C6.1 2 7 2.9 7 4V2H7.5ZM13 17L17 13H15L13 15V17L15 19H17L13 23V21L11 19V17Z"
+      fill={props.fill || "#575F66"}
+    />
+  </Svg>
+);

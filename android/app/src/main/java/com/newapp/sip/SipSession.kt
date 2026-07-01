@@ -1,5 +1,6 @@
 package com.newapp.sip
 
+import android.content.Context
 import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
@@ -19,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 object SipSession {
-    const val VERSION = "5"
+    const val VERSION = "6"
 
     private const val TAG = "SIP"
     private const val TIMEOUT_MS = 15000
@@ -45,6 +46,14 @@ object SipSession {
         val direction: String,
         val inviteCseq: Int,
         val inviteRaw: String,
+        val remoteIp: String = "127.0.0.1",
+        val remotePort: Int = 4000,
+    )
+
+    data class SdpData(
+        val remoteIp: String,
+        val remotePort: Int,
+        val payloadType: Int = 0,
     )
 
     private val executor = Executors.newSingleThreadExecutor()
@@ -53,6 +62,7 @@ object SipSession {
     private val registered = AtomicBoolean(false)
 
     @Volatile private var reactContext: ReactApplicationContext? = null
+    @Volatile private var appContext: Context? = null
     @Volatile private var socket: DatagramSocket? = null
     @Volatile private var listenerThread: Thread? = null
     @Volatile private var refreshTask: ScheduledFuture<*>? = null
@@ -71,6 +81,8 @@ object SipSession {
     private val registerCseq = AtomicInteger(1)
 
     @Volatile private var activeCall: ActiveCall? = null
+    @Volatile private var incomingCallAddress: InetAddress? = null
+    @Volatile private var incomingCallPort: Int = 0
     private val responseWaiters = ConcurrentHashMap<String, ArrayBlockingQueue<SipResponse>>()
 
     private fun responseKey(callId: String, cseq: Int, method: String): String =
@@ -88,8 +100,13 @@ object SipSession {
                 val response = queue.poll(remaining, TimeUnit.MILLISECONDS)
                     ?: throw IllegalStateException("No valid SIP response for $method")
 
-                if (response.statusCode == 100) {
-                    Log.d(TAG, "Received 100 Trying, waiting for final response...")
+                if (response.statusCode in 100..199) {
+                    if (method == "INVITE" && response.statusCode in listOf(180, 183)) {
+                        activeCall?.let { call ->
+                            emitCallState("ringing", call.callId, call.remoteNumber)
+                        }
+                    }
+                    Log.d(TAG, "Received ${response.statusCode} ${response.reasonPhrase}, waiting for final response...")
                     continue
                 }
 
@@ -114,6 +131,7 @@ object SipSession {
 
     fun setReactContext(context: ReactApplicationContext?) {
         reactContext = context
+        appContext = context?.applicationContext
     }
 
     fun register(usernameInput: String, passwordInput: String, server: String, portInput: Int): String {
@@ -181,6 +199,8 @@ object SipSession {
             val currentSocket = socket ?: return@execute
             try {
                 sendBye(currentSocket, call)
+                RtpAudioManager.stop()
+                RingtoneHelper.stop()
                 emitCallState("ended", call.callId, call.remoteNumber)
             } catch (error: Exception) {
                 Log.w(TAG, "Failed to send BYE", error)
@@ -196,6 +216,8 @@ object SipSession {
             val currentSocket = socket ?: return@execute
             try {
                 sendResponse(currentSocket, call.inviteRaw, 603, "Decline")
+                RtpAudioManager.stop()
+                RingtoneHelper.stop()
                 emitCallState("ended", call.callId, call.remoteNumber)
             } catch (error: Exception) {
                 Log.w(TAG, "Failed to decline call", error)
@@ -209,7 +231,14 @@ object SipSession {
         val call = activeCall ?: throw IllegalStateException("No incoming call to answer.")
         val currentSocket = socket ?: throw IllegalStateException("SIP session is not active.")
 
+        RingtoneHelper.stop()
+        val offerBody = extractMessageBody(call.inviteRaw)
+        val offeredPts = parseOfferedPayloadTypes(offerBody)
+        val selectedPt = offeredPts.firstOrNull { it == 0 || it == 8 } ?: 0
+        RtpAudioManager.prepare()
+        RtpAudioManager.setPayloadType(selectedPt)
         sendInviteOk(currentSocket, call)
+        RtpAudioManager.start(appContext ?: throw IllegalStateException("Context not set"), call.remoteIp, call.remotePort)
         emitCallState("connected", call.callId, call.remoteNumber)
         return "Call answered"
     }
@@ -315,7 +344,7 @@ object SipSession {
                     udpSocket.soTimeout = 5000
                     udpSocket.receive(packet)
                     val raw = String(packet.data, 0, packet.length, Charsets.UTF_8)
-                    dispatchPacket(raw)
+                    dispatchPacket(raw, packet.address, packet.port)
                 } catch (_: java.net.SocketTimeoutException) {
                     // Keep listener alive while waiting for packets.
                 } catch (error: Exception) {
@@ -331,7 +360,7 @@ object SipSession {
         }
     }
 
-    private fun dispatchPacket(raw: String) {
+    private fun dispatchPacket(raw: String, sourceAddress: InetAddress?, sourcePort: Int) {
         val firstLine = raw.lineSequence().firstOrNull()?.trim().orEmpty()
         Log.d(TAG, "Incoming SIP: ${preview(firstLine)}")
 
@@ -346,12 +375,14 @@ object SipSession {
                 sendResponse(currentSocket, raw, 200, "OK")
             }
             firstLine.startsWith("INVITE ", ignoreCase = true) -> {
-                handleIncomingInvite(raw)
+                handleIncomingInvite(raw, sourceAddress, sourcePort)
             }
             firstLine.startsWith("BYE ", ignoreCase = true) -> {
                 val currentSocket = socket ?: return
                 sendResponse(currentSocket, raw, 200, "OK")
                 activeCall?.let { call ->
+                    RtpAudioManager.stop()
+                    RingtoneHelper.stop()
                     emitCallState("ended", call.callId, call.remoteNumber)
                     activeCall = null
                 }
@@ -359,15 +390,11 @@ object SipSession {
             firstLine.startsWith("CANCEL ", ignoreCase = true) -> {
                 val currentSocket = socket ?: return
                 sendResponse(currentSocket, raw, 200, "OK")
-                activeCall?.let { call ->
-                    emitCallState("ended", call.callId, call.remoteNumber)
-                    activeCall = null
-                }
             }
         }
     }
 
-    private fun handleIncomingInvite(raw: String) {
+    private fun handleIncomingInvite(raw: String, sourceAddress: InetAddress?, sourcePort: Int) {
         val parsed = parseRequest(raw) ?: return
         val fromHeader = parsed.headers["from"]?.firstOrNull().orEmpty()
         val toHeader = parsed.headers["to"]?.firstOrNull().orEmpty()
@@ -376,6 +403,10 @@ object SipSession {
         val fromTag = fromHeader.substringAfter("tag=", "").substringBefore(";").trim()
         val remoteNumber = extractSipUser(fromHeader) ?: "Unknown"
         val remoteDisplay = extractDisplayName(fromHeader) ?: remoteNumber
+
+        val sdp = parseSdp(extractMessageBody(raw))
+        val remoteIp = sdp.remoteIp
+        val remotePort = sdp.remotePort
 
         activeCall = ActiveCall(
             callId = callId,
@@ -386,10 +417,16 @@ object SipSession {
             direction = "incoming",
             inviteCseq = cseqHeader.substringBefore(" ").trim().toIntOrNull() ?: 1,
             inviteRaw = raw,
+            remoteIp = remoteIp,
+            remotePort = remotePort,
         )
+
+        incomingCallAddress = sourceAddress
+        incomingCallPort = sourcePort ?: 5060
 
         val currentSocket = socket ?: return
         sendResponse(currentSocket, raw, 180, "Ringing")
+        appContext?.let { RingtoneHelper.start(it) }
         emitIncomingCall(callId, remoteNumber, remoteDisplay)
         emitCallState("ringing", callId, remoteNumber)
     }
@@ -399,6 +436,7 @@ object SipSession {
         toUri: String,
         destination: String,
     ): String {
+        RtpAudioManager.prepare()
         val callId = "${System.currentTimeMillis()}@$localIp"
         val fromTag = randomHex(8)
 
@@ -421,6 +459,8 @@ object SipSession {
             direction = "outgoing",
             inviteCseq = 1,
             inviteRaw = "",
+            remoteIp = "127.0.0.1",
+            remotePort = 4000,
         )
 
         emitCallState("connecting", callId, destination)
@@ -447,17 +487,33 @@ object SipSession {
         }
 
         return when (response.statusCode) {
-            100 -> {
-                emitCallState("connecting", callId, destination)
-                "Call connecting"
-            }
-            180, 183 -> {
-                emitCallState("ringing", callId, destination)
-                "Call ringing"
-            }
             200 -> {
-                emitCallState("connected", callId, destination)
-                "Call connected"
+                val sdp = parseSdp(extractMessageBody(response.raw))
+                val toHeader = response.headers["to"]?.firstOrNull().orEmpty()
+                val toTag = toHeader.substringAfter("tag=", "").substringBefore(";").trim()
+                activeCall = activeCall?.copy(
+                    remoteIp = sdp.remoteIp,
+                    remotePort = sdp.remotePort,
+                    toTag = toTag.ifEmpty { null },
+                )
+                val ackTarget = response.headers["contact"]?.firstOrNull()?.let { extractSipUri(it) } ?: toUri
+                sendAck(socket, callId, fromTag, response, ackTarget)
+                RtpAudioManager.setPayloadType(sdp.payloadType)
+                appContext?.let { RtpAudioManager.start(it, sdp.remoteIp, sdp.remotePort) }
+                if (RtpAudioManager.isRunning()) {
+                    emitCallState("connected", callId, destination)
+                    "Call connected"
+                } else {
+                    emitCallState("failed", callId, destination)
+                    throw IllegalStateException("Failed to start RTP audio stream")
+                }
+            }
+            603, 486 -> {
+                RtpAudioManager.stop()
+                RingtoneHelper.stop()
+                activeCall = null
+                emitCallState("declined", callId, destination)
+                throw IllegalStateException("Call declined by remote party")
             }
             else -> {
                 activeCall = null
@@ -599,17 +655,7 @@ object SipSession {
     ) {
         val branch = "z9hG4bK${randomHex(12)}"
         val toHeaderValue = toHeader ?: "<$toUri>"
-        val sdp = buildString {
-            append("v=0\r\n")
-            append("o=- ${System.currentTimeMillis()} 1 IN IP4 $localIp\r\n")
-            append("s=-\r\n")
-            append("c=IN IP4 $localIp\r\n")
-            append("t=0 0\r\n")
-            append("m=audio 4000 RTP/AVP 0 8 18\r\n")
-            append("a=rtpmap:0 PCMU/8000\r\n")
-            append("a=rtpmap:8 PCMA/8000\r\n")
-            append("a=rtpmap:18 G729/8000\r\n")
-        }
+        val sdp = buildAudioSdp()
         val contentLength = sdp.toByteArray(Charsets.UTF_8).size
 
         val message = buildString {
@@ -639,7 +685,7 @@ object SipSession {
 
     private fun sendBye(socket: DatagramSocket, call: ActiveCall) {
         val branch = "z9hG4bK${randomHex(12)}"
-        val toUri = "sip:${call.remoteNumber}@$host"
+        val toUri = "sip:${call.remoteNumber}@${call.remoteIp}"
         val message = buildString {
             append("BYE $toUri SIP/2.0\r\n")
             append("Via: SIP/2.0/UDP $localIp:$localPort;branch=$branch;rport\r\n")
@@ -658,6 +704,37 @@ object SipSession {
         val toTag = randomHex(8)
         activeCall = call.copy(toTag = toTag)
         sendResponse(socket, call.inviteRaw, 200, "OK", toTag)
+    }
+
+    private fun sendAck(
+        socket: DatagramSocket,
+        callId: String,
+        fromTag: String,
+        response: SipResponse,
+        requestUri: String,
+    ) {
+        val branch = "z9hG4bK${randomHex(12)}"
+        val toHeader = response.headers["to"]?.firstOrNull().orEmpty()
+        val toTag = toHeader.substringAfter("tag=", "").substringBefore(";").trim()
+        val toHeaderValue = if (toTag.isNotEmpty() && !toHeader.contains("tag=")) {
+            "$toHeader;tag=$toTag"
+        } else {
+            toHeader
+        }
+
+        val message = buildString {
+            append("ACK $requestUri SIP/2.0\r\n")
+            append("Via: SIP/2.0/UDP $localIp:$localPort;branch=$branch;rport\r\n")
+            append("Max-Forwards: 70\r\n")
+            append("To: $toHeaderValue\r\n")
+            append("From: \"$username\" <$fromUri>;tag=$fromTag\r\n")
+            append("Call-ID: $callId\r\n")
+            append("CSeq: 1 ACK\r\n")
+            append("Content-Length: 0\r\n")
+            append("\r\n")
+        }
+        sendUdp(socket, message, host, port)
+        Log.d(TAG, "Sent ACK for call $callId to $host:$port")
     }
 
     private fun sendResponse(
@@ -689,15 +766,11 @@ object SipSession {
             append("CSeq: $cseq\r\n")
             append("User-Agent: newapp/1.0\r\n")
             if (statusCode == 200 && requestRaw.startsWith("INVITE", ignoreCase = true)) {
-                val sdp = buildString {
-                    append("v=0\r\n")
-                    append("o=- ${System.currentTimeMillis()} 1 IN IP4 $localIp\r\n")
-                    append("s=-\r\n")
-                    append("c=IN IP4 $localIp\r\n")
-                    append("t=0 0\r\n")
-                    append("m=audio 4000 RTP/AVP 0\r\n")
-                    append("a=rtpmap:0 PCMU/8000\r\n")
-                }
+                val offerBody = extractMessageBody(requestRaw)
+                val offeredPts = parseOfferedPayloadTypes(offerBody)
+                val selectedPt = offeredPts.firstOrNull { it == 0 || it == 8 } ?: 0
+                RtpAudioManager.setPayloadType(selectedPt)
+                val sdp = buildAnswerSdp(selectedPt)
                 append("Content-Type: application/sdp\r\n")
                 append("Content-Length: ${sdp.toByteArray(Charsets.UTF_8).size}\r\n")
                 append("\r\n")
@@ -708,7 +781,17 @@ object SipSession {
             }
         }
 
-        sendUdp(socket, message, host, port)
+        val destAddress = if (requestRaw.startsWith("INVITE", ignoreCase = true) && incomingCallAddress != null) {
+            incomingCallAddress!!
+        } else {
+            InetAddress.getByName(host)
+        }
+        val destPort = if (requestRaw.startsWith("INVITE", ignoreCase = true) && incomingCallPort > 0) {
+            incomingCallPort
+        } else {
+            port
+        }
+        sendUdp(socket, message, destAddress, destPort)
     }
 
     private fun stopInternal(sendUnregister: Boolean) {
@@ -743,6 +826,8 @@ object SipSession {
         listenerThread = null
         activeCall = null
         responseWaiters.clear()
+        RtpAudioManager.stop()
+        RingtoneHelper.stop()
         emitRegistrationState("unregistered", "SIP session stopped")
     }
 
@@ -805,6 +890,11 @@ object SipSession {
     private fun sendUdp(socket: DatagramSocket, message: String, host: String, port: Int) {
         val data = message.toByteArray(Charsets.UTF_8)
         val address = InetAddress.getByName(host)
+        socket.send(DatagramPacket(data, data.size, address, port))
+    }
+
+    private fun sendUdp(socket: DatagramSocket, message: String, address: InetAddress, port: Int) {
+        val data = message.toByteArray(Charsets.UTF_8)
         socket.send(DatagramPacket(data, data.size, address, port))
     }
 
@@ -964,5 +1054,86 @@ object SipSession {
         context
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
             .emit("sipCallState", params)
+    }
+
+    private fun buildAnswerSdp(payloadType: Int): String {
+        val rtpPort = RtpAudioManager.prepare().takeIf { it > 0 } ?: 4000
+        val codecName = if (payloadType == 8) "PCMA/8000" else "PCMU/8000"
+        return buildString {
+            append("v=0\r\n")
+            append("o=- ${System.currentTimeMillis()} 1 IN IP4 $localIp\r\n")
+            append("s=-\r\n")
+            append("c=IN IP4 $localIp\r\n")
+            append("t=0 0\r\n")
+            append("m=audio $rtpPort RTP/AVP $payloadType\r\n")
+            append("a=rtpmap:$payloadType $codecName\r\n")
+            append("a=sendrecv\r\n")
+            append("a=ptime:20\r\n")
+        }
+    }
+
+    private fun parseOfferedPayloadTypes(sdpContent: String): List<Int> {
+        val mLine = Regex("""m=audio\s+\d+\s+RTP/AVP\s+(.+)""").find(sdpContent)?.groupValues?.get(1)
+            ?: return listOf(0)
+        return mLine.trim().split(Regex("""\s+"""))
+            .mapNotNull { it.toIntOrNull() }
+    }
+
+    private fun buildAudioSdp(): String {
+        val rtpPort = RtpAudioManager.prepare().takeIf { it > 0 } ?: 4000
+        return buildString {
+            append("v=0\r\n")
+            append("o=- ${System.currentTimeMillis()} 1 IN IP4 $localIp\r\n")
+            append("s=-\r\n")
+            append("c=IN IP4 $localIp\r\n")
+            append("t=0 0\r\n")
+            append("m=audio $rtpPort RTP/AVP 18 3 111 8 0\r\n")
+            append("a=rtpmap:18 G729/8000\r\n")
+            append("a=rtpmap:3 GSM/8000\r\n")
+            append("a=rtpmap:111 opus/48000/2\r\n")
+            append("a=rtpmap:8 PCMA/8000\r\n")
+            append("a=rtpmap:0 PCMU/8000\r\n")
+            append("a=sendrecv\r\n")
+            append("a=ptime:20\r\n")
+        }
+    }
+
+    private fun extractMessageBody(raw: String): String {
+        val separator = when {
+            raw.contains("\r\n\r\n") -> "\r\n\r\n"
+            raw.contains("\n\n") -> "\n\n"
+            else -> return ""
+        }
+        return raw.substringAfter(separator).trim()
+    }
+
+    private fun extractSipUri(headerValue: String): String? {
+        val match = Regex("""<([^>]+)>""").find(headerValue)
+        return match?.groupValues?.get(1)?.trim()
+    }
+
+    private fun parseSdp(sdpContent: String): SdpData {
+        var remoteIp = "127.0.0.1"
+        var remotePort = 4000
+        var payloadType = 0
+
+        if (sdpContent.isBlank()) {
+            Log.w(TAG, "Empty SDP body, using defaults")
+            return SdpData(remoteIp, remotePort, payloadType)
+        }
+
+        val cLineMatch = Regex("""c=IN IP4\s+(\S+)""").find(sdpContent)
+        if (cLineMatch != null) {
+            remoteIp = cLineMatch.groupValues[1]
+        }
+
+        val mLineMatch = Regex("""m=audio\s+(\d+)\s+RTP/AVP(?:\s+(\d+))?""").find(sdpContent)
+        if (mLineMatch != null) {
+            remotePort = mLineMatch.groupValues[1].toIntOrNull() ?: 4000
+            payloadType = mLineMatch.groupValues[2].toIntOrNull() ?: 0
+        }
+
+        Log.d(TAG, "Parsed SDP: $remoteIp:$remotePort PT=$payloadType")
+        return SdpData(remoteIp, remotePort, payloadType)
     }
 }
