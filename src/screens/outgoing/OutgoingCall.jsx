@@ -180,6 +180,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   buttonContainer: {
+    flexDirection:'row',
+    gap:10,
     marginTop: 60,
     alignItems: 'center',
     width: '100%',
