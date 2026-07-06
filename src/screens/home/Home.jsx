@@ -39,6 +39,10 @@ const Home = ({ navigation }) => {
 
     const isRegistered = registrationStatus.state === 'registered'
 
+    const handleContactsPress = () => {
+        navigation.navigate('Contact')
+    }
+
     const recentCalls = [
         {
             id: '1',
@@ -123,19 +127,19 @@ const Home = ({ navigation }) => {
                             {sipUsername ? `${sipUsername} • ${registrationStatus.message}` : registrationStatus.message}
                         </Text>
                     </View>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
                         <RightArrowIcon />
                     </TouchableOpacity>
                 </View>
                 <View style={styles.quickActionsContainer}>
                     <View style={styles.quickActionsRow}>
-                        <TouchableOpacity style={styles.quickActionItem}>
+                        <TouchableOpacity style={styles.quickActionItem} onPress={() => navigation.navigate('DialPad')}>
                             <View style={styles.quickActionIcon}>
                                 <CallIcon width={24} height={24} />
                             </View>
                             <Text style={styles.quickActionText}>New Call</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.quickActionItem}>
+                        <TouchableOpacity style={styles.quickActionItem} onPress={handleContactsPress}>
                             <View style={styles.quickActionIcon}>
                                 <ContactIcon />
                             </View>
@@ -149,7 +153,7 @@ const Home = ({ navigation }) => {
                             </View>
                             <Text style={styles.quickActionText}>Message</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.quickActionItem}>
+                        <TouchableOpacity style={styles.quickActionItem} onPress={() => navigation.navigate('VoiceMail')}>
                             <View style={styles.quickActionIcon}>
                                 <VoiceMailIcon />
                             </View>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,90 +9,89 @@ import {
   StatusBar,
   TextInput,
   Dimensions,
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { CallIcon, NotificationIcon, SearchIcon } from '../../utils/svgs/CommonSvgs';
 import Header from '../../components/Header';
+import Contacts from 'react-native-contacts';
 
 const { width } = Dimensions.get('window');
 
-const contacts = [
-  {
-    id: '1',
-    name: 'Alice Anderson',
-    avatar: 'https://i.pravatar.cc/150?img=1',
-    subtitle: 'SIP: alice.a@softphone.corp',
-    online: true,
-    isFavorite: true,
-  },
-  {
-    id: '2',
-    name: 'Arthur Wright',
-    avatar: null,
-    subtitle: '+1 (555) 123-4567',
-    online: false,
-    initial: 'AW',
-    isFavorite: false,
-  },
-  {
-    id: '3',
-    name: 'Bob Baker',
-    avatar: 'https://i.pravatar.cc/150?img=3',
-    subtitle: 'SIP: bbaker@softphone.corp',
-    online: true,
-    isFavorite: true,
-  },
-  {
-    id: '4',
-    name: 'Catherine Davis',
-    avatar: null,
-    subtitle: '+40 20 7946 0958',
-    online: false,
-    initial: 'CD',
-    isFavorite: false,
-  },
-  {
-    id: '5',
-    name: 'Charlie Chaplin (IT)',
-    avatar: 'https://i.pravatar.cc/150?img=5',
-    subtitle: 'SIP: helpdesk@softphone.corp',
-    online: true,
-    isFavorite: false,
-  },
-];
+const ContactItem = ({ item }) => {
+  const initials = item.name ? item.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?';
+  return (
+    <TouchableOpacity style={styles.contactContainer}>
+      <View style={styles.avatarContainer}>
+        {item.avatar ? (
+          <Image source={{ uri: `file://${item.avatar}` }} style={styles.avatar} />
+        ) : (
+          <View style={styles.initialAvatar}>
+            <Text style={styles.initialText}>{initials || '?'}</Text>
+          </View>
+        )}
+      </View>
 
-const favorites = contacts.filter(item => item.isFavorite);
+      <View style={styles.contactInfo}>
+        <Text style={styles.contactName}>{item.name}</Text>
+        <Text style={styles.contactSubtitle}>{item.phoneNumbers && item.phoneNumbers[0] ? item.phoneNumbers[0].number : ''}</Text>
+      </View>
 
-const ContactItem = ({ item }) => (
-  <TouchableOpacity style={styles.contactContainer}>
-    <View style={styles.avatarContainer}>
-      {item.avatar ? (
-        <Image source={{ uri: item.avatar }} style={styles.avatar} />
-      ) : (
-        <View style={styles.initialAvatar}>
-          <Text style={styles.initialText}>{item.initial}</Text>
-        </View>
-      )}
-      {item.online && <View style={styles.onlineDot} />}
-    </View>
-
-    <View style={styles.contactInfo}>
-      <Text style={styles.contactName}>{item.name}</Text>
-      <Text style={styles.contactSubtitle}>{item.subtitle}</Text>
-    </View>
-
-    <TouchableOpacity style={styles.callButton}>
-      <CallIcon />
+      <TouchableOpacity style={styles.callButton}>
+        <CallIcon />
+      </TouchableOpacity>
     </TouchableOpacity>
-  </TouchableOpacity>
-);
+  );
+};
 
 const Contact = () => {
   const [index, setIndex] = useState(0);
+  const [contacts, setContacts] = useState([]);
+  const [favorites, setFavorites] = useState([]);
   const [routes] = useState([
     { key: 'all', title: 'All' },
     { key: 'favorites', title: 'Favorites' },
   ]);
+
+  useEffect(() => {
+    const loadContacts = async () => {
+      try {
+        if (Platform.OS === 'android') {
+          const hasPermission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS);
+          if (!hasPermission) {
+            const granted = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
+              {
+                title: 'Contacts Permission',
+                message: 'This app needs access to your contacts to display them.',
+                buttonPositive: 'OK',
+              }
+            );
+            if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+              return;
+            }
+          }
+        }
+        const deviceContacts = await Contacts.getAll();
+        const formattedContacts = deviceContacts.map((contact, idx) => ({
+          id: contact.recordID || String(idx),
+          recordID: contact.recordID,
+          name: contact.givenName && contact.familyName 
+            ? `${contact.givenName} ${contact.familyName}` 
+            : contact.givenName || contact.familyName || 'Unknown',
+          avatar: contact.hasThumbnail ? contact.thumbnailPath : null,
+          phoneNumbers: contact.phoneNumbers,
+          isFavorite: contact.isFavorite || false,
+        }));
+        setContacts(formattedContacts);
+        setFavorites(formattedContacts.filter(c => c.isFavorite));
+      } catch (error) {
+        console.error('Error loading contacts:', error);
+      }
+    };
+    loadContacts();
+  }, []);
 
   const AllRoute = () => (
     <FlatList
@@ -101,6 +100,7 @@ const Contact = () => {
       renderItem={({ item }) => <ContactItem item={item} />}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.listContent}
+      ListEmptyComponent={<Text style={styles.emptyText}>No contacts found</Text>}
     />
   );
 
@@ -111,6 +111,7 @@ const Contact = () => {
       renderItem={({ item }) => <ContactItem item={item} />}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.listContent}
+      ListEmptyComponent={<Text style={styles.emptyText}>No favorite contacts</Text>}
     />
   );
 
@@ -236,17 +237,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#555',
   },
-  onlineDot: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#22c55e',
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
   contactInfo: {
     flex: 1,
   },
@@ -266,6 +256,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16,
+    color: '#666',
   },
 });
 
