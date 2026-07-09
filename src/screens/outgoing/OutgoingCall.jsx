@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Alert, PermissionsAndroid, Platform } from 'react-native'
 import { PhoneDeclineIcon, SpeakerIcon, MuteIcon } from '../../utils/svgs/CommonSvgs'
 import { hangupCall, onCallState, toggleSpeaker, toggleMute } from '../../services/sipService'
+import { saveCallHistory } from '../../services/callHistoryService'
 
 const OutgoingCall = ({ route, navigation }) => {
   const { phoneNumber, callerName } = route.params || {}
@@ -9,11 +10,31 @@ const OutgoingCall = ({ route, navigation }) => {
   const [callStatus, setCallStatus] = useState('Calling...')
   const [isSpeakerOn, setIsSpeakerOn] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
+  const navigatedBack = useRef(false)
+
+  const returnToApp = () => {
+    if (navigatedBack.current) return
+    navigatedBack.current = true
+    try {
+      if (navigation.canGoBack()) {
+        navigation.goBack()
+      } else {
+        navigation.navigate('BottomTabs')
+      }
+    } catch (e) {
+      try {
+        navigation.navigate('BottomTabs')
+      } catch (err) {
+        console.error('[OutgoingCall] Navigation back failed:', err)
+      }
+    }
+  }
 
   useEffect(() => {
     requestRecordPermission()
 
     const unsubscribe = onCallState((event) => {
+      console.log('[OutgoingCall] Call state received:', event?.state, event?.remoteNumber)
       if (event?.state === 'connecting') {
         setCallStatus('Calling...')
       } else if (event?.state === 'ringing') {
@@ -22,21 +43,41 @@ const OutgoingCall = ({ route, navigation }) => {
         setCallStatus('Connected')
       } else if (event?.state === 'declined') {
         setCallStatus('Call Declined')
+        saveCallHistory({
+          name: displayName,
+          number: phoneNumber,
+          type: 'missed',
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }).catch(err => console.error('[OutgoingCall] Save failed:', err))
         setTimeout(() => {
-          navigation.replace('BottomTabs')
+          returnToApp()
         }, 2000)
       } else if (event?.state === 'failed') {
         setCallStatus('Call failed')
+        saveCallHistory({
+          name: displayName,
+          number: phoneNumber,
+          type: 'missed',
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }).catch(err => console.error('[OutgoingCall] Save failed:', err))
         setTimeout(() => {
-          navigation.replace('BottomTabs')
+          returnToApp()
         }, 2000)
       } else if (event?.state === 'ended') {
-        navigation.replace('BottomTabs')
+        console.log('[OutgoingCall] Call ended event - saving history and navigating back')
+        // Save for connected calls that ended (remote ended the call)
+        saveCallHistory({
+          name: displayName,
+          number: phoneNumber,
+          type: 'outgoing',
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }).catch(err => console.error('[OutgoingCall] Save on ended failed:', err))
+        returnToApp()
       }
     })
 
     return unsubscribe
-  }, [navigation])
+  }, [navigation, phoneNumber, displayName])
 
   const requestRecordPermission = async () => {
     if (Platform.OS === 'android') {
@@ -61,13 +102,25 @@ const OutgoingCall = ({ route, navigation }) => {
   }
 
   const handleEndCall = async () => {
+    // Save call history - wait for it to complete
+    saveCallHistory({
+      name: displayName,
+      number: phoneNumber,
+      type: 'outgoing',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }).then(() => {
+      console.log('[OutgoingCall] Call history saved')
+    }).catch(err => console.error('[OutgoingCall] Save error:', err))
     try {
       await hangupCall()
     } catch (error) {
       console.error('[SIP] Hangup failed:', error?.message || error)
-    } finally {
-      navigation.replace('BottomTabs')
     }
+    
+    // Small delay to ensure async storage completes
+    setTimeout(() => {
+      returnToApp()
+    }, 200)
   }
 
   const handleSpeakerToggle = async () => {
@@ -106,7 +159,7 @@ const OutgoingCall = ({ route, navigation }) => {
       <View style={styles.buttonContainer}>
         {callStatus === 'Connected' ? (
           <>
-            <TouchableOpacity style={styles.iconButton} onPress={handleMuteToggle}>
+            <TouchableOpacity style={styles.iconButtonLeft} onPress={handleMuteToggle}>
               <View style={[styles.iconContainer, isMuted && styles.activeIconBackground]}>
                 <MuteIcon width={24} height={24} color={isMuted ? '#FFFFFF' : '#666'} />
               </View>
@@ -120,7 +173,7 @@ const OutgoingCall = ({ route, navigation }) => {
               <Text style={styles.endCallText}>End Call</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.iconButton} onPress={handleSpeakerToggle}>
+            <TouchableOpacity style={styles.iconButtonRight} onPress={handleSpeakerToggle}>
               <View style={[styles.iconContainer, isSpeakerOn && styles.activeIconBackground]}>
                 <SpeakerIcon width={24} height={24} color={isSpeakerOn ? '#FFFFFF' : '#666'} />
               </View>
@@ -184,15 +237,24 @@ const styles = StyleSheet.create({
     gap:10,
     marginTop: 60,
     alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
     width: '100%',
   },
   endCallButton: {
     alignItems: 'center',
   },
-  iconButton: {
+  iconButtonLeft: {
     alignItems: 'center',
     position: 'absolute',
     top: 0,
+    left: 0,
+  },
+  iconButtonRight: {
+    alignItems: 'center',
+    position: 'absolute',
+    top: 0,
+    right: 0,
   },
   iconContainer: {
     width: 60,

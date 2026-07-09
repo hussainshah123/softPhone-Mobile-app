@@ -1,107 +1,144 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  StatusBar,
   Image,
   Dimensions,
 } from 'react-native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import Header from '../../components/Header';
 import { FilterIcon, NotificationIcon } from '../../utils/svgs/CommonSvgs';
+import { getCallHistory } from '../../services/callHistoryService';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
-// Sample Data for each tab
-const allCalls = [
-  { id: '1', name: 'Alex Mercer', subtitle: 'Mobile • +1 (555) 019-2834', time: 'Today, 10:42 AM', type: 'missed', icon: '↓', iconColor: '#ff3b5c' },
-  { id: '2', name: 'Design Sync', subtitle: 'Conference • Extension 402', time: 'Yesterday, 4:15 PM', type: 'outgoing', icon: '↑', iconColor: '#22c55e' },
-  { id: '3', name: 'Sarah Chen', subtitle: 'Work • +1 (555) 837-1102', time: 'Yesterday, 1:30 PM', type: 'incoming', icon: '↖', iconColor: '#8b5cf6' },
-  { id: '4', name: 'Unknown Caller', subtitle: 'Unknown • +1 (800) 555-0000', time: 'Mon, 9:00 AM', type: 'missed', icon: '↓', iconColor: '#ff3b5c' },
-];
+const getCallIcon = (type) => {
+  if (type === 'incoming') return { icon: '↖', iconColor: '#8b5cf6' }
+  if (type === 'outgoing') return { icon: '↑', iconColor: '#22c55e' }
+  return { icon: '↓', iconColor: '#ff3b5c' }
+}
 
-const missedCalls = allCalls.filter(item => item.type === 'missed');
-const incomingCalls = allCalls.filter(item => item.type === 'incoming');
-const outgoingCalls = allCalls.filter(item => item.type === 'outgoing');
-
-const renderCallItem = ({ item }) => (
-  <View style={styles.callCard}>
-    <View style={styles.callInfo}>
-      <View style={[styles.callIconContainer, { backgroundColor: `${item.iconColor}15` }]}>
-        <Text style={[styles.callTypeIcon, { color: item.iconColor }]}>{item.icon}</Text>
-      </View>
-
-      <View style={styles.callDetails}>
-        <Text style={styles.callName}>{item.name}</Text>
-        <Text style={styles.callSubtitle}>{item.subtitle}</Text>
-        <Text style={styles.callTime}>{item.time}</Text>
-      </View>
-    </View>
-
-    <TouchableOpacity style={styles.callButton}>
-      <Text style={styles.callButtonIcon}>📞</Text>
-    </TouchableOpacity>
-  </View>
-);
-
-const AllRoute = () => (
-  <FlatList
-    data={allCalls}
-    keyExtractor={(item) => item.id}
-    renderItem={renderCallItem}
-    showsVerticalScrollIndicator={false}
-    contentContainerStyle={styles.listContent}
-  />
-);
-
-const MissedRoute = () => (
-  <FlatList
-    data={missedCalls}
-    keyExtractor={(item) => item.id}
-    renderItem={renderCallItem}
-    showsVerticalScrollIndicator={false}
-    contentContainerStyle={styles.listContent}
-  />
-);
-
-const IncomingRoute = () => (
-  <FlatList
-    data={incomingCalls}
-    keyExtractor={(item) => item.id}
-    renderItem={renderCallItem}
-    showsVerticalScrollIndicator={false}
-    contentContainerStyle={styles.listContent}
-  />
-);
-
-const OutgoingRoute = () => (
-  <FlatList
-    data={outgoingCalls}
-    keyExtractor={(item) => item.id}
-    renderItem={renderCallItem}
-    showsVerticalScrollIndicator={false}
-    contentContainerStyle={styles.listContent}
-  />
-);
-
-const renderScene = SceneMap({
-  all: AllRoute,
-  missed: MissedRoute,
-  incoming: IncomingRoute,
-  outgoing: OutgoingRoute,
-});
+const formatTime = (timestamp) => {
+  const date = new Date(timestamp)
+  const now = new Date()
+  const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 0) {
+    return `Today, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+  } else if (diffDays === 1) {
+    return `Yesterday, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+  } else {
+    return date.toLocaleDateString([], { weekday: 'short' }) + ', ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+}
 
 const RecentCallHistory = () => {
   const [index, setIndex] = useState(0);
+  const [allCalls, setAllCalls] = useState([]);
   const [routes] = useState([
     { key: 'all', title: 'All' },
     { key: 'missed', title: 'Missed' },
     { key: 'incoming', title: 'Incoming' },
     { key: 'outgoing', title: 'Outgoing' },
   ]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadHistory = async () => {
+        const history = await getCallHistory()
+        console.log('[RecentCallHistory] Loaded history:', history.length, 'items')
+        const formatted = history.map(call => ({
+          id: call.id,
+          name: call.name,
+          subtitle: call.number,
+          time: formatTime(call.timestamp || Date.now()),
+          type: call.type,
+          ...getCallIcon(call.type)
+        }))
+        setAllCalls(formatted)
+      }
+      loadHistory()
+    }, [])
+  )
+
+  const missedCalls = allCalls.filter(item => item.type === 'missed');
+  const incomingCalls = allCalls.filter(item => item.type === 'incoming');
+  const outgoingCalls = allCalls.filter(item => item.type === 'outgoing');
+
+  const renderCallItem = ({ item }) => (
+    <View style={styles.callCard}>
+      <View style={styles.callInfo}>
+        <View style={[styles.callIconContainer, { backgroundColor: `${item.iconColor}15` }]}>
+          <Text style={[styles.callTypeIcon, { color: item.iconColor }]}>{item.icon}</Text>
+        </View>
+
+        <View style={styles.callDetails}>
+          <Text style={styles.callName}>{item.name}</Text>
+          <Text style={styles.callSubtitle}>{item.subtitle}</Text>
+          <Text style={styles.callTime}>{item.time}</Text>
+        </View>
+      </View>
+
+      <TouchableOpacity style={styles.callButton}>
+        <Text style={styles.callButtonIcon}>📞</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const AllRoute = () => (
+    <FlatList
+      data={allCalls}
+      keyExtractor={(item) => item.id}
+      renderItem={renderCallItem}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.listContent}
+      ListEmptyComponent={<Text style={styles.emptyText}>No call history</Text>}
+    />
+  );
+
+  const MissedRoute = () => (
+    <FlatList
+      data={missedCalls}
+      keyExtractor={(item) => item.id}
+      renderItem={renderCallItem}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.listContent}
+      ListEmptyComponent={<Text style={styles.emptyText}>No missed calls</Text>}
+    />
+  );
+
+  const IncomingRoute = () => (
+    <FlatList
+      data={incomingCalls}
+      keyExtractor={(item) => item.id}
+      renderItem={renderCallItem}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.listContent}
+      ListEmptyComponent={<Text style={styles.emptyText}>No incoming calls</Text>}
+    />
+  );
+
+  const OutgoingRoute = () => (
+    <FlatList
+      data={outgoingCalls}
+      keyExtractor={(item) => item.id}
+      renderItem={renderCallItem}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.listContent}
+      ListEmptyComponent={<Text style={styles.emptyText}>No outgoing calls</Text>}
+    />
+  );
+
+  const renderScene = SceneMap({
+    all: AllRoute,
+    missed: MissedRoute,
+    incoming: IncomingRoute,
+    outgoing: OutgoingRoute,
+  });
 
   return (
     <View style={styles.container}>
@@ -232,6 +269,12 @@ const styles = StyleSheet.create({
   },
   callButtonIcon: {
     fontSize: 20,
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16,
+    color: '#666',
   },
 });
 

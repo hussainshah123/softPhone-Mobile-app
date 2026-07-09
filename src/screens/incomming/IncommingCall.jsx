@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Alert, PermissionsAndroid, Platform } from 'react-native'
 import { PhoneAcceptIcon, PhoneDeclineIcon, SpeakerIcon, MuteIcon } from '../../utils/svgs/CommonSvgs'
 import { answerCall, declineCall, hangupCall, onCallState, toggleSpeaker, toggleMute } from '../../services/sipService'
+import { saveCallHistory } from '../../services/callHistoryService'
 
 const IncommingCall = ({ route, navigation }) => {
   const { phoneNumber, callerName, destination } = route.params || {}
@@ -16,12 +17,18 @@ const IncommingCall = ({ route, navigation }) => {
       if (event?.state === 'connected') {
         setCallStatus('Connected')
       } else if (event?.state === 'ended' || event?.state === 'failed' || event?.state === 'declined') {
-        navigation.replace('BottomTabs')
+        saveCallHistory({
+          name: displayName,
+          number: phoneNumber,
+          type: event?.state === 'ended' ? 'incoming' : 'missed',
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }).catch(err => console.error('[IncomingCall] Save failed:', err))
+        navigation.popToTop()
       }
     })
 
     return unsubscribe
-  }, [navigation])
+  }, [navigation, phoneNumber, displayName])
 
   const requestRecordPermission = async () => {
     if (Platform.OS === 'android') {
@@ -46,6 +53,12 @@ const IncommingCall = ({ route, navigation }) => {
   }
 
   const handleDecline = async () => {
+    saveCallHistory({
+      name: displayName,
+      number: phoneNumber,
+      type: 'missed',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    })
     try {
       await declineCall()
     } catch (error) {

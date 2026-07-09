@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { NotificationIcon, CallIcon, ContactIcon, MessageIcon, VoiceMailIcon, AntinaIcon, GreenIcon, RightArrowIcon } from '../../utils/svgs/CommonSvgs'
 import Header from '../../components/Header'
 import { onRegistrationState } from '../../services/sipService'
+import { getCallHistory } from '../../services/callHistoryService'
+import { useFocusEffect } from '@react-navigation/native'
 
 const Home = ({ navigation }) => {
     const [registrationStatus, setRegistrationStatus] = useState({
@@ -11,6 +13,7 @@ const Home = ({ navigation }) => {
         message: 'Checking SIP status...',
     })
     const [sipUsername, setSipUsername] = useState('')
+    const [recentCalls, setRecentCalls] = useState([])
 
     useEffect(() => {
         const loadCredentials = async () => {
@@ -37,50 +40,35 @@ const Home = ({ navigation }) => {
         return unsubscribe
     }, [])
 
+    useFocusEffect(
+    React.useCallback(() => {
+      const loadCallHistory = async () => {
+        const history = await getCallHistory()
+        console.log('[Home] Loaded call history count:', history.length)
+        setRecentCalls(history.slice(0, 3))
+      }
+      loadCallHistory()
+      return () => {}
+    }, [])
+  )
+
     const isRegistered = registrationStatus.state === 'registered'
 
     const handleContactsPress = () => {
         navigation.navigate('Contact')
     }
 
-    const recentCalls = [
-        {
-            id: '1',
-            name: 'Jane Doe',
-            number: 'sip:jane.doe@company.com',
-            time: '10:30 AM',
-            type: 'incoming',
-            initials: 'JD',
-        },
-        {
-            id: '2',
-            name: 'John Smith',
-            number: 'sip:john.smith@company.com',
-            time: 'Yesterday',
-            type: 'outgoing',
-            initials: 'JS',
-        },
-        {
-            id: '3',
-            name: 'Alice Johnson',
-            number: 'sip:alice.j@company.com',
-            time: 'Yesterday',
-            type: 'missed',
-            initials: 'AJ',
-        },
-    ]
-
     const renderRecentCall = (item) => (
         <View key={item.id} style={styles.callItem}>
             <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{item.initials}</Text>
+                <Text style={styles.avatarText}>{item.name ? item.name.substring(0, 2).toUpperCase() : '?'}</Text>
             </View>
             <View style={styles.callInfo}>
                 <Text style={styles.name}>{item.name}</Text>
                 <Text style={styles.number}>{item.number}</Text>
             </View>
             <View style={styles.callMeta}>
-                <Text style={styles.time}>{item.time}</Text>
+                <Text style={styles.time}>{new Date(item.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                 <View style={[
                     styles.callTypeIcon,
                     item.type === 'incoming' && styles.incoming,
@@ -88,7 +76,7 @@ const Home = ({ navigation }) => {
                     item.type === 'missed' && styles.missed
                 ]}>
                     <Text style={styles.callTypeText}>
-                        {item.type === 'incoming' ? '↓' : item.type === 'outgoing' ? '↑' : '✕'}
+                        {item.type === 'incoming' ? '↖' : item.type === 'outgoing' ? '↑' : '↓'}
                     </Text>
                 </View>
             </View>
@@ -169,7 +157,13 @@ const Home = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
 
-                {recentCalls.map((item) => renderRecentCall(item))}
+                {recentCalls.length > 0 ? (
+                    recentCalls.map((item) => renderRecentCall(item))
+                ) : (
+                    <View style={{padding: 20, alignItems: 'center'}}>
+                        <Text style={{color: '#666'}}>No call history</Text>
+                    </View>
+                )}
             </ScrollView>
         </View>
     )

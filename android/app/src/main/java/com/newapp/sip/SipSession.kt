@@ -81,6 +81,7 @@ object SipSession {
     private val registerCseq = AtomicInteger(1)
 
     @Volatile private var activeCall: ActiveCall? = null
+    @Volatile private var sawRingingForCurrentCall: Boolean = false
     @Volatile private var incomingCallAddress: InetAddress? = null
     @Volatile private var incomingCallPort: Int = 0
     private val responseWaiters = ConcurrentHashMap<String, ArrayBlockingQueue<SipResponse>>()
@@ -101,7 +102,9 @@ object SipSession {
                     ?: throw IllegalStateException("No valid SIP response for $method")
 
                 if (response.statusCode in 100..199) {
+                    Log.d(TAG, "[DEBUG-INVITE] Provisional ${response.statusCode} ${response.reasonPhrase} for $method")
                     if (method == "INVITE" && response.statusCode in listOf(180, 183)) {
+                        sawRingingForCurrentCall = true
                         activeCall?.let { call ->
                             emitCallState("ringing", call.callId, call.remoteNumber)
                         }
@@ -109,6 +112,8 @@ object SipSession {
                     Log.d(TAG, "Received ${response.statusCode} ${response.reasonPhrase}, waiting for final response...")
                     continue
                 }
+
+                Log.d(TAG, "[DEBUG-INVITE] Final ${response.statusCode} ${response.reasonPhrase} for $method")
 
                 return response
             }
@@ -464,6 +469,7 @@ object SipSession {
         )
 
         emitCallState("connecting", callId, destination)
+        sawRingingForCurrentCall = false
 
         var response = awaitFinalResponse(callId, 1, "INVITE")
         Log.d(TAG, "UDP initial INVITE response: ${response.statusCode} ${response.reasonPhrase}")
@@ -501,6 +507,7 @@ object SipSession {
                 RtpAudioManager.setPayloadType(sdp.payloadType)
                 appContext?.let { RtpAudioManager.start(it, sdp.remoteIp, sdp.remotePort) }
                 if (RtpAudioManager.isRunning()) {
+                    Log.d(TAG, "[DEBUG-INVITE] Emitting 'connected'. sawRingingBefore200=$sawRingingForCurrentCall")
                     emitCallState("connected", callId, destination)
                     "Call connected"
                 } else {
