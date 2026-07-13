@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Alert, PermissionsAndroid, Platform } from 'react-native'
+import LinearGradient from 'react-native-linear-gradient'
 import { PhoneDeclineIcon, SpeakerIcon, MuteIcon } from '../../utils/svgs/CommonSvgs'
 import { hangupCall, onCallState, toggleSpeaker, toggleMute } from '../../services/sipService'
 import { saveCallHistory } from '../../services/callHistoryService'
@@ -142,7 +143,12 @@ const OutgoingCall = ({ route, navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#004d14', '#006E1C', '#008a23']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
       <Text style={styles.outgoingText}>{callStatus}</Text>
 
       <View style={styles.avatarContainer}>
@@ -161,7 +167,7 @@ const OutgoingCall = ({ route, navigation }) => {
           <>
             <TouchableOpacity style={styles.iconButtonLeft} onPress={handleMuteToggle}>
               <View style={[styles.iconContainer, isMuted && styles.activeIconBackground]}>
-                <MuteIcon width={24} height={24} color={isMuted ? '#FFFFFF' : '#666'} />
+                <MuteIcon width={24} height={24} color={isMuted ? '#FFFFFF' : '#FFFFFF'} />
               </View>
               <Text style={styles.iconLabel}>{isMuted ? 'Unmute' : 'Mute'}</Text>
             </TouchableOpacity>
@@ -175,7 +181,7 @@ const OutgoingCall = ({ route, navigation }) => {
 
             <TouchableOpacity style={styles.iconButtonRight} onPress={handleSpeakerToggle}>
               <View style={[styles.iconContainer, isSpeakerOn && styles.activeIconBackground]}>
-                <SpeakerIcon width={24} height={24} color={isSpeakerOn ? '#FFFFFF' : '#666'} />
+                <SpeakerIcon width={24} height={24} color={isSpeakerOn ? '#FFFFFF' : '#FFFFFF'} />
               </View>
               <Text style={styles.iconLabel}>{isSpeakerOn ? 'Earpiece' : 'Speaker'}</Text>
             </TouchableOpacity>
@@ -189,21 +195,20 @@ const OutgoingCall = ({ route, navigation }) => {
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </LinearGradient>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 30,
   },
   outgoingText: {
     fontSize: 18,
-    color: '#5B403E',
+    color: '#FFFFFF',
     marginBottom: 90,
   },
   avatarContainer: {
@@ -213,23 +218,26 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#F0F3FF',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   avatarText: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#B61723',
+    color: '#FFFFFF',
   },
   name: {
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: '#FFFFFF',
   },
   phoneNumber: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: 20,
   },
   buttonContainer: {
@@ -263,18 +271,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
-    backgroundColor: '#F0F3FF',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   activeIconBackground: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  endCallIconBackground: {
+    backgroundColor: '#B61723',
   },
   endCallText: {
     fontSize: 16,
-    color: '#B61723',
+    color: '#FFFFFF',
   },
   iconLabel: {
     fontSize: 12,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.8)',
   },
 })
 

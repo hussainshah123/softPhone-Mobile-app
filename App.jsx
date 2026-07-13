@@ -26,7 +26,7 @@ const App = () => {
 
   return (
     <NavigationContainer ref={navigationRef}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="dark-content" backgroundColor="#7ED957" />
       <Stack />
     </NavigationContainer>
   );

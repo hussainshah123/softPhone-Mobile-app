@@ -9,27 +9,37 @@ import {
     Switch,
     ScrollView,
 } from 'react-native';
-import { AboutIcon, ConfrenceCall, DoNotDistrubIcon, HelpIcon, KeyIcon, LogoutIcon, NotificationIcon, RightArrowIcon, RingIcon, VoiceMailIcon, VolumIcon } from '../../utils/svgs/CommonSvgs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AboutIcon, ConfrenceCall, DoNotDistrubIcon, HelpAndSupportIcon, HelpIcon, KeyIcon, LogoutIcon, NotificationIcon, RightArrowIcon, RingIcon, SignalIcon, SipAccountIcon, VoiceMailIcon, VolumIcon } from '../../utils/svgs/CommonSvgs';
 import Header from '../../components/Header';
+import CustomAlert from '../../components/CustomAlert';
 
-const Setting = () => {
+const Setting = ({ navigation }) => {
     const [isDND, setIsDND] = useState(true);
+    const [alert, setAlert] = useState({
+        visible: false,
+        type: 'warning',
+        title: '',
+        message: '',
+        confirmText: 'OK',
+        onConfirm: null,
+    });
 
     return (
         <View style={styles.container}>
             <Header
-                title="Softphone"
+                title="Profile"
                 titleStyle={{
-                    color: '#B61723',
-                    textAlign: 'left',
+                    color: '#006E1C',
+                    textAlign: 'center',
                 }}
-                containerStyle={{ marginTop: 20 }}
-                leftComponent={
-                    <Image
-                        source={{ uri: 'https://i.pravatar.cc/150?img=68' }}
-                        style={styles.headerAvatar}
-                    />
-                }
+                // containerStyle={{ marginTop: 20 }}
+                // leftComponent={
+                //     <Image
+                //         source={{ uri: 'https://i.pravatar.cc/150?img=68' }}
+                //         style={styles.headerAvatar}
+                //     />
+                // }
                 rightComponent={<NotificationIcon />}
             />
             <ScrollView
@@ -45,108 +55,38 @@ const Setting = () => {
                     <View style={styles.profileInfo}>
                         <Text style={styles.profileName}>Alex Mercer</Text>
                         <Text style={styles.profileEmail}>sip.alex@softphone.enterprise.com</Text>
-                        <View style={styles.registeredBadge}>
-                            <Text style={styles.registeredText}>Registered</Text>
-                        </View>
                     </View>
                 </View>
 
                 {/* ACCOUNT Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>ACCOUNT</Text>
+                    {/* <Text style={styles.sectionTitle}>ACCOUNT</Text> */}
 
-                    <TouchableOpacity style={styles.menuItem}>
+                    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SipAccountScreen')}>
                         <View style={styles.menuIcon}>
-                            <ConfrenceCall />
+                            <SipAccountIcon />
 
                         </View>
-                        <Text style={styles.menuText}>Call Forwarding</Text>
-                        <Text style={styles.menuValue}>Off</Text>
-                        <View style={styles.chevron}>
-                            <RightArrowIcon />
-
-                        </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.menuItem}>
-                        <View style={styles.menuIcon}>
-                            <VoiceMailIcon />
-
-                        </View>
-                        <Text style={styles.menuText}>Voicemail</Text>
+                        <Text style={styles.menuText}>Sip Account</Text>
                         <View style={styles.chevron}>
                             <RightArrowIcon />
                         </View>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.menuItem}>
+                    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('CallQualityScreen')}>
                         <View style={styles.menuIcon}>
-                            <KeyIcon />
-                        </View>
-                        <Text style={styles.menuText}>SIP Credentials</Text>
-                        <View style={styles.chevron}>
-                            <RightArrowIcon />
-                        </View>
-                    </TouchableOpacity>
-                </View>
+                            <SignalIcon />
 
-                {/* PREFERENCES Section */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>PREFERENCES</Text>
-
-                    <View style={styles.menuItem}>
-                        <View style={styles.menuIcon}>
-                            <DoNotDistrubIcon />
                         </View>
-                        <Text style={styles.menuText}>Do Not Disturb</Text>
-                        <Text style={styles.menuSubText}>Silence incoming calls</Text>
-                        <Switch
-                            value={isDND}
-                            onValueChange={setIsDND}
-                            trackColor={{ false: '#ccc', true: '#B61723' }}
-                            thumbColor="#fff"
-                        />
-                    </View>
-
-                    <TouchableOpacity style={styles.menuItem}>
-                        <View style={styles.menuIcon}>
-                            <RingIcon />
-                        </View>
-                        <Text style={styles.menuText}>Ringtone</Text>
-                        <Text style={styles.menuValue}>Classic Synth</Text>
+                        <Text style={styles.menuText}>Call Quality</Text>
                         <View style={styles.chevron}>
                             <RightArrowIcon />
                         </View>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.menuItem}>
+                    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('HelpAndSupportScreen')}>
                         <View style={styles.menuIcon}>
-                            <VolumIcon />
-                        </View>
-                        <Text style={styles.menuText}>Audio & Devices</Text>
-                        <View style={styles.chevron}>
-                            <RightArrowIcon />
-                        </View>
-                    </TouchableOpacity>
-                </View>
-                {/* APP Section */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>APP</Text>
-
-                    <TouchableOpacity style={styles.menuItem}>
-                        <View style={styles.menuIcon}>
-                            <AboutIcon />
-                        </View>
-                        <Text style={styles.menuText}>About</Text>
-                        <Text style={styles.menuValue}>v2.4.1</Text>
-                        <View style={styles.chevron}>
-                            <RightArrowIcon />
-                        </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.menuItem}>
-                        <View style={styles.menuIcon}>
-                            <HelpIcon />
+                            <HelpAndSupportIcon />
                         </View>
                         <Text style={styles.menuText}>Help & Support</Text>
                         <View style={styles.chevron}>
@@ -155,13 +95,45 @@ const Setting = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* Log Out Button */}
-                <TouchableOpacity style={styles.logoutButton}>
-                    <LogoutIcon />
+
+                <TouchableOpacity
+                    style={styles.logoutButton}
+                    onPress={() => {
+                        setAlert({
+                            visible: true,
+                            type: 'warning',
+                            title: 'Log Out',
+                            message: 'Are you sure you want to log out?',
+                            confirmText: 'Log Out',
+                            cancelText: 'Cancel',
+                            onConfirm: async () => {
+                                try {
+                                    await AsyncStorage.clear();
+                                    navigation.reset({
+                                        index: 0,
+                                        routes: [{ name: 'Login' }],
+                                    });
+                                } catch (error) {
+                                    console.error('Logout error:', error);
+                                }
+                            },
+                        });
+                    }}
+                >
                     <Text style={styles.logoutText}>Log Out</Text>
                 </TouchableOpacity>
 
-                {/* Bottom Navigation */}
+
+                <CustomAlert
+                    visible={alert.visible}
+                    type={alert.type}
+                    title={alert.title}
+                    message={alert.message}
+                    confirmText={alert.confirmText}
+                    cancelText={alert.cancelText}
+                    onConfirm={alert.onConfirm}
+                    onCancel={() => setAlert({ ...alert, visible: false })}
+                />
             </ScrollView>
         </View>
     );
@@ -170,7 +142,7 @@ const Setting = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8f9fa',
+        backgroundColor: '#F4FBF1CC',
     },
     scrollContent: {
         paddingBottom: 30,
@@ -182,43 +154,30 @@ const styles = StyleSheet.create({
         marginRight: 8,
     },
 
-    headerAvatar: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        marginRight: 10,
-    },
-
     profileCard: {
-        backgroundColor: '#fff',
+        // backgroundColor: '#fff',
         padding: 20,
         marginHorizontal: 16,
         marginTop: 16,
         borderRadius: 12,
-        flexDirection: 'row',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-        elevation: 3,
+
     },
     profileAvatar: {
-        width: 70,
-        height: 70,
-        borderRadius: 35,
-        marginRight: 16,
-    },
-    profileInfo: {
-        flex: 1,
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        // marginRight: 16,
     },
     profileName: {
         fontSize: 20,
+        textAlign: 'center',
         fontWeight: '700',
     },
     profileEmail: {
         fontSize: 14,
         color: '#666',
+        textAlign: 'center',
         marginVertical: 4,
     },
     registeredBadge: {
@@ -247,14 +206,21 @@ const styles = StyleSheet.create({
     menuItem: {
         backgroundColor: '#fff',
         flexDirection: 'row',
+        marginVertical: 10,
+        borderRadius: 10,
         alignItems: 'center',
-        padding: 16,
+        // padding: 16,
+        paddingVertical: 15,
+        paddingHorizontal: 16,
         borderBottomWidth: 1,
         borderBottomColor: '#f0f0f0',
     },
     menuIcon: {
         fontSize: 22,
-        width: 30,
+        // width: 30,
+        padding: 15,
+        borderRadius: 50,
+        backgroundColor: "#006E1C1A",
         marginRight: 12,
     },
     menuText: {
@@ -277,24 +243,22 @@ const styles = StyleSheet.create({
         color: '#ccc',
     },
     logoutButton: {
-        marginHorizontal: 16,
+        marginHorizontal: 30,
         marginTop: 30,
         flexDirection: "row",
         gap: 5,
         alignContent: "center",
-        // alignSelf:'center',
         justifyContent: 'center',
-        backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 10,
+        paddingVertical: 15,
+        borderRadius: 25,
         alignItems: 'center',
-        borderWidth: 0.5,
+        borderWidth: 1,
         borderColor: '#B61723',
     },
     logoutText: {
         color: '#B61723',
         fontSize: 17,
-        fontWeight: '600',
+        fontWeight: 'bold'
     },
     bottomNav: {
         flexDirection: 'row',

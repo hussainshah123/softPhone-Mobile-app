@@ -82,7 +82,7 @@ const DialPad = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <Header
+            {/* <Header
                 title="Softphone"
                 titleStyle={{
                     color: '#B61723',
@@ -96,7 +96,7 @@ const DialPad = ({ navigation }) => {
                     />
                 }
                 rightComponent={<NotificationIcon />}
-            />
+            /> */}
             <View style={styles.displayContainer}>
                 <Text style={styles.phoneNumberText}>
                     {phoneNumber || '|'}
@@ -124,7 +124,7 @@ const DialPad = ({ navigation }) => {
             </View>
 
             <TouchableOpacity style={styles.callButton} onPress={handleCall}>
-                <CallIcon width={32} height={32} fill="white" />
+                <CallIcon width={25} height={25} fill="white" />
             </TouchableOpacity>
         </View>
     )
@@ -133,7 +133,7 @@ const DialPad = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // backgroundColor: '#FFFFFF',
+        backgroundColor: 'white',
         alignItems: 'center',
         
     },
@@ -163,9 +163,10 @@ const styles = StyleSheet.create({
         marginLeft: 120,
     },
     displayContainer: {
+        marginTop:50,
         width: '100%',
         alignItems: 'center',
-        marginBottom: 40,
+        // marginBottom: 20,
         position: 'relative',
     },
      headerAvatar: {
@@ -188,6 +189,7 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     dialPadContainer: {
+        marginTop:20,
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'center',
@@ -197,13 +199,13 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'white',
+        backgroundColor: '#F1F3F4',
         justifyContent: 'center',
         alignItems: 'center',
         margin: 10,
     },
     dialNumber: {
-        fontSize: 28,
+        fontSize: 26,
         fontWeight: '600',
         color: '#333',
     },
@@ -216,10 +218,10 @@ const styles = StyleSheet.create({
         width: 70,
         height: 70,
         borderRadius: 35,
-        backgroundColor: '#B61723',
+        backgroundColor: '#006E1C',
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#B61723',
+        shadowColor: '#45d469',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,

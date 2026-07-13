@@ -211,19 +211,19 @@ const Slider = ({ navigation }) => {
 
     const slides = [
         {
-            image: require('../../assets/images/background.png'),
-            title: 'Make Calls Over Internet',
-            description: 'Connect instantly with clear audio quality anywhere in the world using your data or Wi-Fi.'
+            image: require('../../assets/images/first.png'),
+            title: 'Connect',
+            description: 'Human-Centric Connectivity.'
         },
         {
-            image: require('../../assets/images/system.png'),
-            title: 'Crystal Clear HD Audio',
-            description: 'Experience high-definition voice calls with advanced noise cancellation technology.'
+            image: require('../../assets/images/Margin.png'),
+            title: 'ConnectSphere',
+            description: 'Crystal Clear Calls, Anywhere.'
         },
         {
-            image: require('../../assets/images/system.png'),
-            title: 'High Quality Video Calls',
-            description: 'Experience crystal clear video calls with your friends and family with minimal data usage.'
+            image: require('../../assets/images/last.png'),
+            title: 'Crystal Clear Conversations',
+            description: 'Join thousands of people making high-quality SIP calls every day. Just listen or jump in to speak..'
         },
     ];
 
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 4,
     },
     activeDot: {
-        backgroundColor: '#B61723',
+        backgroundColor: '#4CAF50',
         width: 24,
     },
     buttonContainer: {
@@ -355,10 +355,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',   // Changed for better look
     },
     nextButton: {
-        backgroundColor: '#B61723',
-        paddingVertical: 14,
+        backgroundColor: '#4CAF50',
+        paddingVertical: 15,
         paddingHorizontal: 60,
         borderRadius: 25,
+        width: '100%',
         alignItems: 'center',
     },
     nextText: {
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     loginButton: {
-        backgroundColor: '#B61723',
+        backgroundColor: '#4CAF50',
         paddingVertical: 15,
         borderRadius: 25,
         alignItems: 'center',

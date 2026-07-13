@@ -4,7 +4,8 @@ import DialPad from '../screens/dialpad/DialPad'
 import RecentCall from '../screens/recent/RecentCall'
 import Contact from '../screens/contact/Contact'
 import Setting from '../screens/setting/Setting'
-import { HomeIcon, DialPadIcon, RecentIcon, ContactIcon, SettingIcon, DialIcon, RecentWatchIcon, HomeMainIcon } from '../utils/svgs/CommonSvgs'
+import { HomeIcon, DialPadIcon, RecentIcon, ContactIcon, SettingIcon, DialIcon, RecentWatchIcon, HomeMainIcon, PhoneAcceptIcon, ProfileIcon } from '../utils/svgs/CommonSvgs'
+import { StyleSheet, TouchableOpacity } from 'react-native'
 
 const Tab = createBottomTabNavigator()
 
@@ -12,35 +13,34 @@ const Bottom = () => {
     return (
         <Tab.Navigator
             screenOptions={{
-                tabBarActiveTintColor: '#B61723',
-                tabBarInactiveTintColor: '#999',
                 headerShown: false,
-            }}
-        >
+                tabBarShowLabel: true,
+                tabBarActiveTintColor: '#006E1C',
+                tabBarInactiveTintColor: '#7A7A7A',
+                tabBarStyle: {
+                    height: 70,
+                    paddingBottom: 8,
+                    paddingTop: 8,
+                    borderTopWidth: 0,
+                    elevation: 8,
+                },
+                tabBarLabelStyle: {
+                    fontSize: 11,
+                },
+            }}>
             <Tab.Screen
                 name="Home"
                 component={Home}
                 options={{
-                    tabBarIcon: ({ color, size }) => (
-                        <HomeMainIcon width={size} height={size} />
-                    ),
-                }}
-            />
-            <Tab.Screen
-                name="DialPad"
-                component={DialPad}
-                options={{
-                    tabBarIcon: ({ color, size }) => (
-                        <DialIcon width={size} height={size} fill={'#575F66'} />
-                    ),
-                }}
-            />
-            <Tab.Screen
-                name="RecentCall"
-                component={RecentCall}
-                options={{
-                    tabBarIcon: ({ color, size }) => (
-                        <RecentWatchIcon width={size} height={size} />
+                    tabBarLabelStyle: {
+                        color: '#8A8A8A',
+                    },
+                    tabBarIcon: ({ focused, size }) => (
+                        <HomeMainIcon
+                            width={size}
+                            height={size}
+                            fill={focused ? '#006E1C' : '#8A8A8A'}
+                        />
                     ),
                 }}
             />
@@ -48,17 +48,66 @@ const Bottom = () => {
                 name="Contact"
                 component={Contact}
                 options={{
-                    tabBarIcon: ({ color, size ,fill}) => (
-                        <ContactIcon width={size} height={size} fill={fill || '#575F66'} />
+                    tabBarLabelStyle: {
+                        color: '#8A8A8A',
+                    },
+                    tabBarIcon: ({ focused, size }) => (
+                        <ContactIcon
+                            width={size}
+                            height={size}
+                            fill={focused ? '#006E1C' : '#8A8A8A'}
+                        />
                     ),
                 }}
             />
             <Tab.Screen
-                name="Setting"
+                name="Dial"
+                component={DialPad}
+                options={{
+                    tabBarLabel: 'Dial',
+                    tabBarButton: props => (
+                        <TouchableOpacity
+                            {...props}
+                            style={styles.floatingButton}>
+                            <PhoneAcceptIcon width={28} height={28} fill="#fff" />
+                        </TouchableOpacity>
+                    ),
+                }}
+            />
+            <Tab.Screen
+                name="Recent"
+                component={RecentCall}
+                options={{
+                    tabBarLabelStyle: {
+                        color: '#8A8A8A',
+                    },
+                    tabBarLabel: 'History',
+                    tabBarIcon: ({ focused, size }) => (
+                        <RecentWatchIcon
+                            width={size}
+                            height={size}
+                            fill={focused ? '#006E1C' : '#8A8A8A'}
+                        />
+                    ),
+                }}
+            />
+
+
+
+            <Tab.Screen
+                name="Profile"
                 component={Setting}
                 options={{
-                    tabBarIcon: ({ color, size }) => (
-                        <SettingIcon width={size} height={size} />
+                    tabBarLabelStyle: {
+                        color: '#8A8A8A',
+                    },
+                    tabBarLabel: 'Profile',
+                    tabBarIcon: ({ focused, size }) => (
+                        <ProfileIcon
+                            width={size}
+                            height={size}
+                            fill={focused ? '#006E1C' : '#8A8A8A'}
+                        />
                     ),
                 }}
             />
@@ -67,3 +116,22 @@ const Bottom = () => {
 }
 
 export default Bottom
+const styles = StyleSheet.create({
+    floatingButton: {
+        top: -30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: '#006E1C',
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+    },
+});

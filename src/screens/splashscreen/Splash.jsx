@@ -1,23 +1,34 @@
-import React, { useEffect } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
-import { HeadphoneIcon } from '../../utils/svgs/CommonSvgs'
+import React, { useEffect } from 'react';
+import { StyleSheet, Text } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { HeadphoneIcon, SplashIcon } from '../../utils/svgs/CommonSvgs';
 
 const Splash = ({ navigation }) => {
     useEffect(() => {
         const timer = setTimeout(() => {
-            navigation.replace('Slider')
-        }, 3000)
-        return () => clearTimeout(timer)
-    }, [navigation])
+            navigation.replace('Onboarding');
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, [navigation]);
 
     return (
-        <View style={styles.container}>
-            <HeadphoneIcon height={150} width={150} />
-            <Text style={styles.heading}>Softphone</Text>
-            <Text style={styles.subheading}>Crystal Clear Calls, Anywhere</Text>
-        </View>
-    )
-}
+        <LinearGradient
+            colors={['#7ED957', '#4CAF50']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.container}
+        >
+           <SplashIcon/>
+
+            <Text style={styles.heading}>Fortphone</Text>
+
+            <Text style={styles.subheading}>
+                Crystal Clear Calls, Anywhere
+            </Text>
+        </LinearGradient>
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -26,14 +37,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     heading: {
+        marginTop: 20,
         fontSize: 30,
         fontWeight: 'bold',
+        color: '#FFFFFF',
     },
     subheading: {
+        marginTop: 8,
         fontSize: 16,
-        fontWeight: 'normal',
-        color: '#575F66'
+        color: '#FFFFFF',
     },
-})
+});
 
-export default Splash
+export default Splash;

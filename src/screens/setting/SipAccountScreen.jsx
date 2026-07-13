@@ -1,0 +1,278 @@
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    ScrollView,
+    StatusBar,
+    Image,
+} from 'react-native';
+import { SaveIcon, EyeOpenIcon, EyeCloseIcon, BackIcon } from '../../utils/svgs/CommonSvgs';
+import Header from '../../components/Header';
+
+const SipAccountScreen = ({ navigation }) => {
+    const [sipId, setSipId] = useState('user@sip.connectsphere.com');
+    const [displayName, setDisplayName] = useState('Alex Morgan');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [serverUrl, setServerUrl] = useState('sip.connectsphere.com');
+    const [port, setPort] = useState('5060');
+    const [transport, setTransport] = useState('UDP');
+
+    const handleSave = () => {
+        console.log('Saving SIP account settings');
+        navigation.goBack();
+    };
+
+    return (
+        <View style={styles.container}>
+            {/* <StatusBar barStyle="dark-content" backgroundColor="#F4FBF1CC" /> */}
+            <Header
+                title="SIP Account"
+                titleStyle={{
+                    color: 'black',
+                    textAlign: 'center',
+                }}
+                containerStyle={{ marginTop: 20 }}
+                leftComponent={
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <BackIcon />
+                    </TouchableOpacity>
+                }
+                rightComponent={
+                    <Image
+                        source={{ uri: 'https://i.pravatar.cc/150?img=68' }}
+                        style={styles.headerAvatar}
+                    />
+                }
+            />
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+            >
+                {/* Credentials Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Credentials</Text>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>SIP ID / Email</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={sipId}
+                            onChangeText={setSipId}
+                            placeholder="Enter SIP ID or Email"
+                            placeholderTextColor="#999"
+                            autoCapitalize="none"
+                            keyboardType="email-address"
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Display Name</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={displayName}
+                            onChangeText={setDisplayName}
+                            placeholder="Enter display name"
+                            placeholderTextColor="#999"
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Password</Text>
+                        <View style={styles.passwordContainer}>
+                            <TextInput
+                                style={styles.passwordInput}
+                                value={password}
+                                onChangeText={setPassword}
+                                placeholder="Enter password"
+                                placeholderTextColor="#999"
+                                secureTextEntry={!showPassword}
+                            />
+                            <TouchableOpacity
+                                style={styles.eyeIcon}
+                                onPress={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? (
+                                    <EyeOpenIcon width={20} height={20} />
+                                ) : (
+                                    <EyeCloseIcon width={20} height={20} />
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Server Configuration Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Server Configuration</Text>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>SIP Server URL</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={serverUrl}
+                            onChangeText={setServerUrl}
+                            placeholder="Enter SIP server URL"
+                            placeholderTextColor="#999"
+                            autoCapitalize="none"
+                        />
+                    </View>
+                    <View style={styles.portinput}>
+
+
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.label}>Port</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={port}
+                                onChangeText={setPort}
+                                placeholder="Enter port"
+                                placeholderTextColor="#999"
+                                keyboardType="number-pad"
+                            />
+                        </View>
+
+                        <View style={styles.udpcontainer}>
+                            <Text style={styles.label}>Transport</Text>
+                            <View style={styles.dropdownContainer}>
+                                <Text style={styles.dropdownText}>{transport}</Text>
+                                {/* <Text style={styles.dropdownArrow}>▼</Text> */}
+                            </View>
+                        </View>
+                    </View>
+
+                </View>
+
+                {/* Save Button */}
+                <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                    <SaveIcon width={20} height={20} />
+                    <Text style={styles.saveButtonText}>Save Changes</Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#F4FBF1CC',
+    },
+    headerAvatar: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+    },
+    scrollContent: {
+        paddingBottom: 30,
+    },
+    backText: {
+        fontSize: 16,
+        color: '#B61723',
+        fontWeight: '600',
+    },
+    section: {
+        marginTop: 20,
+        backgroundColor: 'white',
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        borderColor: '#006E1C',
+        borderWidth: 0.2,
+        borderRadius: 10,
+        marginHorizontal: 16,
+    },
+    sectionTitle: {
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#333',
+        marginBottom: 16,
+    },
+    portinput: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 10,
+    },
+    inputContainer: {
+        flex: 1,
+        marginBottom: 16,
+    },
+    udpcontainer: {
+        flex: 1,
+        marginBottom: 16,
+    },
+
+    label: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#333',
+        marginBottom: 8,
+    },
+    input: {
+        backgroundColor: '#fff',
+        borderRadius: 25,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        fontSize: 16,
+        borderWidth: 0.5,
+        borderColor: '#006E1C',
+    },
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 25,
+        borderWidth: 0.5,
+        borderColor: '#006E1C',
+    },
+    passwordInput: {
+        flex: 1,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        fontSize: 16,
+    },
+    eyeIcon: {
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+    },
+    dropdownContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 25,
+        flex: 1,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#006E1C',
+    },
+    dropdownText: {
+        fontSize: 16,
+        color: '#333',
+    },
+    dropdownArrow: {
+        fontSize: 12,
+        color: '#999',
+    },
+    saveButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#22c55e',
+        marginHorizontal: 16,
+        marginTop: 30,
+        paddingVertical: 16,
+        borderRadius: 25,
+        gap: 10,
+    },
+    saveButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+});
+
+export default SipAccountScreen;

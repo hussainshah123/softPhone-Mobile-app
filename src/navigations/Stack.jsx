@@ -7,7 +7,12 @@ import IncommingCall from '../screens/incomming/IncommingCall'
 import OutgoingCall from '../screens/outgoing/OutgoingCall'
 import VoiceMail from '../screens/voisemail/VoiceMail'
 import RecentCallHistory from '../screens/home/RecentCallHistory'
+import Onboarding from '../screens/splashscreen/Onboarding'
 import Bottom from './Bottom'
+import UpgradeToPremium from '../screens/home/UpgradeToPremium'
+import SipAccountScreen from '../screens/setting/SipAccountScreen'
+import CallQualityScreen from '../screens/setting/CallQualityScreen'
+import HelpAndSupportScreen from '../screens/setting/HelpAndSupportScreen'
 
 const StacKNavigation = createNativeStackNavigator()
 const Stack = () => {
@@ -16,6 +21,9 @@ const Stack = () => {
             <StacKNavigation.Screen options={{
                 headerShown: false
             }} name="Splash" component={Splash} />
+             <StacKNavigation.Screen options={{
+                headerShown: false
+            }} name="Onboarding" component={Onboarding} />
             <StacKNavigation.Screen options={{
                 headerShown: false
             }} name="Slider" component={Slider} />
@@ -36,7 +44,19 @@ const Stack = () => {
             }} name="RecentCallHistory" component={RecentCallHistory} />
             <StacKNavigation.Screen options={{
                 headerShown: false
+            }} name="UpgradeToPremium" component={UpgradeToPremium} />
+            <StacKNavigation.Screen options={{
+                headerShown: false
             }} name="BottomTabs" component={Bottom} />
+            <StacKNavigation.Screen options={{
+                headerShown: false
+            }} name="SipAccountScreen" component={SipAccountScreen} />
+            <StacKNavigation.Screen options={{
+                headerShown: false
+            }} name="CallQualityScreen" component={CallQualityScreen} />
+            <StacKNavigation.Screen options={{
+                headerShown: false
+            }} name="HelpAndSupportScreen" component={HelpAndSupportScreen} />
         </StacKNavigation.Navigator>
     )
 }

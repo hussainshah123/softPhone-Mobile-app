@@ -39,7 +39,7 @@ const ContactItem = ({ item }) => {
       </View>
 
       <TouchableOpacity style={styles.callButton}>
-        <CallIcon />
+        <CallIcon fill="#006E1C" width={20} height={20} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -77,8 +77,8 @@ const Contact = () => {
         const formattedContacts = deviceContacts.map((contact, idx) => ({
           id: contact.recordID || String(idx),
           recordID: contact.recordID,
-          name: contact.givenName && contact.familyName 
-            ? `${contact.givenName} ${contact.familyName}` 
+          name: contact.givenName && contact.familyName
+            ? `${contact.givenName} ${contact.familyName}`
             : contact.givenName || contact.familyName || 'Unknown',
           avatar: contact.hasThumbnail ? contact.thumbnailPath : null,
           phoneNumbers: contact.phoneNumbers,
@@ -122,7 +122,7 @@ const Contact = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      {/* <StatusBar barStyle="dark-content" backgroundColor="#StatusBar" /> */}
 
       {/* Header */}
       <Header
@@ -157,9 +157,9 @@ const Contact = () => {
         renderTabBar={props => (
           <TabBar
             {...props}
-            indicatorStyle={{ backgroundColor: '#B61723', height: 3 }}
+            indicatorStyle={{ backgroundColor: 'transparent', height: 3 }}
             style={{ backgroundColor: '#fff' }}
-            activeColor="#B61723"
+            activeColor="#4CAF50"
             inactiveColor="#888"
             labelStyle={{ fontWeight: '600', textTransform: 'none' }}
           />

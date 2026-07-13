@@ -118,9 +118,9 @@ const RecentCall = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      {/* <StatusBar barStyle="dark-content" backgroundColor="#fff" /> */}
 
-      <Header
+      {/* <Header
         title="Phone"
         titleStyle={{ color: '#B61723' }}
         containerStyle={{ marginTop: 20 }}
@@ -131,7 +131,7 @@ const RecentCall = () => {
           />
         }
         rightComponent={<MicIcon />}
-      />
+      /> */}
 
       <View style={styles.messagesHeader}>
         <Text style={styles.messagesTitle}>Messages</Text>
@@ -148,9 +148,9 @@ const RecentCall = () => {
         renderTabBar={props => (
           <TabBar
             {...props}
-            indicatorStyle={{ backgroundColor: '#B61723', height: 3 }}
+            indicatorStyle={{ backgroundColor: 'transparent', height: 3 }}
             style={{ backgroundColor: '#fff' }}
-            activeColor="#B61723"
+            activeColor="#006E1C"
             inactiveColor="#888"
             labelStyle={{ fontWeight: '600', textTransform: 'none' }}
           />
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: '#B61723',
+    backgroundColor: '#006E1C',
     borderWidth: 2,
     borderColor: '#fff',
   },
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#B61723',
+    backgroundColor: '#006E1C',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,

@@ -26,7 +26,7 @@ const formatTime = (timestamp) => {
   const date = new Date(timestamp)
   const now = new Date()
   const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24))
-  
+
   if (diffDays === 0) {
     return `Today, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
   } else if (diffDays === 1) {
@@ -143,8 +143,8 @@ const RecentCallHistory = () => {
   return (
     <View style={styles.container}>
       <Header
-        title="Softphone"
-        titleStyle={{ color: '#B61723', textAlign: 'center' }}
+        title="Recent Calls history"
+        titleStyle={{ color: 'black', textAlign: 'center' }}
         containerStyle={{ marginTop: 20 }}
         leftComponent={
           <Image
@@ -174,12 +174,40 @@ const RecentCallHistory = () => {
         renderTabBar={props => (
           <TabBar
             {...props}
-            indicatorStyle={{ backgroundColor: '#ff3b5c', height: 3 }}
-            style={{ backgroundColor: '#fff', elevation: 0 }}
-            activeColor="#ff3b5c"
-            inactiveColor="#888"
-            labelStyle={{ fontWeight: '600', textTransform: 'none' }}
-            tabStyle={{ paddingBottom: 4 }}
+            indicatorStyle={{ backgroundColor: 'transparent' }}
+            style={{
+              backgroundColor: 'transparent',
+              elevation: 0,
+              shadowOpacity: 0,
+            }}
+            renderTabBarItem={({ route, navigationState, onPress }) => {
+              const isActive =
+                navigationState.routes[navigationState.index].key === route.key;
+
+              return (
+                <TouchableOpacity
+                  onPress={onPress}
+                  style={{
+                    backgroundColor: isActive ? '#006E1C' : 'transparent',
+                    // borderColor: '#006E1C',
+                    // borderWidth: 1,
+                    borderRadius: 25,
+                    marginHorizontal: 6,
+                    paddingVertical: 10,
+                    paddingHorizontal: 20,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <Text
+                    style={{
+                      color: isActive ? '#fff' : '#8A8A8A',
+                      fontWeight: '600',
+                    }}>
+                    {route.title}
+                  </Text>
+                </TouchableOpacity>
+              );
+            }}
           />
         )}
       />
@@ -190,7 +218,7 @@ const RecentCallHistory = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F4FBF1CC',
   },
   headerAvatar: {
     width: 32,

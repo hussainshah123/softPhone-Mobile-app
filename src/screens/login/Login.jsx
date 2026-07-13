@@ -1,8 +1,9 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { EyeOpenIcon, EyeCloseIcon, SipIcon, LoginIcon } from '../../utils/svgs/CommonSvgs'
+import { EyeOpenIcon, EyeCloseIcon, SipIcon, LoginIcon, SpeakerIcon, SplashIcon, InvolopIcon, UrlIcon, PortIcon, LockIcon } from '../../utils/svgs/CommonSvgs'
 import { registerSIP } from '../../services/sipService'
+import CustomAlert from '../../components/CustomAlert'
 
 const Login = ({ navigation }) => {
     const [formData, setFormData] = useState({
@@ -15,6 +16,14 @@ const Login = ({ navigation }) => {
     const [showPassword, setShowPassword] = useState(false)
     const [rememberMe, setRememberMe] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [alert, setAlert] = useState({
+        visible: false,
+        type: 'success',
+        title: '',
+        message: '',
+        confirmText: 'OK',
+        onConfirm: null,
+    })
 
     const validateForm = () => {
         const newErrors = {}
@@ -53,23 +62,35 @@ const Login = ({ navigation }) => {
                 formData.sipServer,
                 formData.port
             )
-            
+
             await AsyncStorage.setItem('sipCredentials', JSON.stringify({
                 username: formData.sipUsername,
                 password: formData.sipPassword,
                 server: formData.sipServer,
                 port: formData.port,
             }))
-            
+
             console.log('[SIP] Login successful:', response)
             setLoading(false)
-            Alert.alert('Registration Success', response, [
-                { text: 'OK', onPress: () => navigation.navigate('BottomTabs') }
-            ])
+            setAlert({
+                visible: true,
+                type: 'success',
+                title: 'Registration Success',
+                message: response,
+                confirmText: 'OK',
+                onConfirm: () => navigation.navigate('BottomTabs'),
+            })
         } catch (error) {
             console.error('[SIP] Login failed:', error?.message || error)
             setLoading(false)
-            Alert.alert('Registration Failed', error?.message || 'Check your SIP server credentials and try again.')
+            setAlert({
+                visible: true,
+                type: 'error',
+                title: 'Registration Failed',
+                message: error?.message || 'Check your SIP server credentials and try again.',
+                confirmText: 'Retry',
+                onConfirm: () => setAlert({ ...alert, visible: false }),
+            })
         }
     }
 
@@ -79,80 +100,85 @@ const Login = ({ navigation }) => {
 
                 <View style={styles.iconContainer}>
                     <View style={styles.sipIcon}>
-                        <SipIcon />
+                        <SplashIcon />
                     </View>
                 </View>
 
-                <Text style={styles.heading}>Connect Your SIP Account</Text>
-                <Text style={styles.subheading}>Enter your credentials to get started</Text>
+                <Text style={styles.heading}>Create Account</Text>
+                <Text style={styles.subheading}>Join ConnectSphere for seamless
+                    connectivity.</Text>
 
                 <View style={styles.inputContainer}>
-                    <Text style={styles.label}>SIP Username</Text>
-                    <TextInput
-                        style={[styles.input, errors.sipUsername && styles.inputError]}
-                        placeholder="Usually your extension or email"
-                        placeholderTextColor="#999"
-                        value={formData.sipUsername}
-                        onChangeText={(text) => {
-                            setFormData({ ...formData, sipUsername: text })
-                            if (errors.sipUsername) setErrors({ ...errors, sipUsername: '' })
-                        }}
-                    />
-                    {errors.sipUsername && <Text style={styles.errorText}>{errors.sipUsername}</Text>}
-                </View>
+                    <View style={[styles.inputWrapper, errors.sipUsername && styles.inputError]}>
+                        <InvolopIcon width={20} height={20} />
 
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>SIP Password</Text>
-                    <View style={styles.passwordContainer}>
                         <TextInput
-                            style={[styles.input, styles.passwordInput, errors.sipPassword && styles.inputError]}
-                            placeholder="Provided by your VoIP admin"
+                            style={styles.textInput}
+                            placeholder="Sip Username"
                             placeholderTextColor="#999"
-                            secureTextEntry={!showPassword}
-                            value={formData.sipPassword}
+                            value={formData.sipUsername}
                             onChangeText={(text) => {
-                                setFormData({ ...formData, sipPassword: text })
-                                if (errors.sipPassword) setErrors({ ...errors, sipPassword: '' })
+                                setFormData({ ...formData, sipUsername: text });
+                                if (errors.sipUsername) {
+                                    setErrors({ ...errors, sipUsername: '' });
+                                }
                             }}
                         />
-                        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                            {showPassword ? <EyeOpenIcon width={22} height={20} /> : <EyeCloseIcon width={22} height={20} />}
-                        </TouchableOpacity>
                     </View>
-                    {errors.sipPassword && <Text style={styles.errorText}>{errors.sipPassword}</Text>}
+
+                    {errors.sipUsername && (
+                        <Text style={styles.errorText}>{errors.sipUsername}</Text>
+                    )}
+                </View>
+
+
+
+                <View style={styles.inputContainer}>
+                    <View style={[styles.inputWrapper, errors.sipServer && styles.inputError]}>
+                        <UrlIcon width={20} height={20} />
+
+                        <TextInput
+                            style={styles.textInput}
+                            placeholder="Sip Server URL"
+                            placeholderTextColor="#999"
+                            value={formData.sipServer}
+                            onChangeText={(text) => {
+                                setFormData({ ...formData, sipServer: text });
+                                if (errors.sipServer) {
+                                    setErrors({ ...errors, sipServer: '' });
+                                }
+                            }}
+                        />
+                    </View>
+
+                    {errors.sipServer && (
+                        <Text style={styles.errorText}>{errors.sipServer}</Text>
+                    )}
                 </View>
 
                 <View style={styles.inputContainer}>
-                    <Text style={styles.label}>SIP Server URL</Text>
-                    <TextInput
-                        style={[styles.input, errors.sipServer && styles.inputError]}
-                        placeholder="e.g., sip.yourcompany.com"
-                        placeholderTextColor="#999"
-                        value={formData.sipServer}
-                        onChangeText={(text) => {
-                            setFormData({ ...formData, sipServer: text })
-                            if (errors.sipServer) setErrors({ ...errors, sipServer: '' })
-                        }}
-                    />
-                    {errors.sipServer && <Text style={styles.errorText}>{errors.sipServer}</Text>}
-                </View>
+                    <View style={[styles.inputWrapper, errors.port && styles.inputError]}>
+                        <PortIcon width={20} height={20} />
 
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Port Number</Text>
-                    <TextInput
-                        style={[styles.input, errors.port && styles.inputError]}
-                        placeholder="Default is 5060 for UDP/TCP"
-                        placeholderTextColor="#999"
-                        value={formData.port}
-                        onChangeText={(text) => {
-                            setFormData({ ...formData, port: text })
-                            if (errors.port) setErrors({ ...errors, port: '' })
-                        }}
-                    />
-                    {errors.port && <Text style={styles.errorText}>{errors.port}</Text>}
-                </View>
+                        <TextInput
+                            style={styles.textInput}
+                            placeholder="Sip Port Number"
+                            placeholderTextColor="#999"
+                            value={formData.port}
+                            onChangeText={(text) => {
+                                setFormData({ ...formData, port: text });
+                                if (errors.port) {
+                                    setErrors({ ...errors, port: '' });
+                                }
+                            }}
+                        />
+                    </View>
 
-                <View style={styles.switchContainer}>
+                    {errors.port && (
+                        <Text style={styles.errorText}>{errors.port}</Text>
+                    )}
+                </View>
+                {/* <View style={styles.switchContainer}>
                     <Text style={styles.switchLabel}>Remember Me</Text>
                     <Switch
                         value={rememberMe}
@@ -160,10 +186,41 @@ const Login = ({ navigation }) => {
                         trackColor={{ false: '#DDD', true: '#B61723' }}
                         thumbColor={rememberMe ? '#FFFFFF' : '#FFFFFF'}
                     />
+                </View> */}
+                <View style={styles.inputContainer}>
+                    <View style={[styles.inputWrapper, errors.sipPassword && styles.inputError]}>
+                        <LockIcon width={20} height={20} />
+
+                        <TextInput
+                            style={styles.textInput}
+                            placeholder="Sip Password"
+                            placeholderTextColor="#999"
+                            secureTextEntry={!showPassword}
+                            value={formData.sipPassword}
+                            onChangeText={(text) => {
+                                setFormData({ ...formData, sipPassword: text });
+                                if (errors.sipPassword) {
+                                    setErrors({ ...errors, sipPassword: '' });
+                                }
+                            }}
+                        />
+
+                        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                            {showPassword ? (
+                                <EyeOpenIcon width={22} height={20} />
+                            ) : (
+                                <EyeCloseIcon width={20} height={20} />
+                            )}
+                        </TouchableOpacity>
+                    </View>
+
+                    {errors.sipPassword && (
+                        <Text style={styles.errorText}>{errors.sipPassword}</Text>
+                    )}
                 </View>
 
-                <TouchableOpacity 
-                    style={[styles.button, loading && styles.buttonDisabled]} 
+                <TouchableOpacity
+                    style={[styles.button, loading && styles.buttonDisabled]}
                     onPress={handleLogin}
                     disabled={loading}
                 >
@@ -178,8 +235,22 @@ const Login = ({ navigation }) => {
                         </>
                     )}
                 </TouchableOpacity>
+                <View style={styles.para}>
+                    <Text style={styles.txt}>By signing up, you agree to
+                        ConnectSphere's Terms of Service and
+                        Privacy Policy.</Text>
+                </View>
             </View>
 
+            <CustomAlert
+                visible={alert.visible}
+                type={alert.type}
+                title={alert.title}
+                message={alert.message}
+                confirmText={alert.confirmText}
+                onConfirm={alert.onConfirm}
+                onCancel={() => setAlert({ ...alert, visible: false })}
+            />
         </View>
     )
 }
@@ -188,26 +259,29 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
-        paddingHorizontal: 30,
-        backgroundColor: "#D3DAEA",
+        paddingHorizontal: 10,
+        backgroundColor: "white",
 
     },
     innerContainer: {
-        backgroundColor: '#FFFFFF',
+        // backgroundColor: '#FFFFFF',
 
         paddingVertical: 10,
-        paddingHorizontal: 30,
+        paddingHorizontal: 20,
         borderRadius: 10
     },
     iconContainer: {
         alignItems: 'center',
         marginBottom: 20,
+        
     },
     sipIcon: {
         width: 60,
         height: 60,
-        backgroundColor: '#F0F3FF',
-        borderRadius: 8,
+        // backgroundColor: '#F0F3FF',
+        borderWidth: 1,
+        borderColor: '#4CAF50',
+        borderRadius: 50,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -221,6 +295,22 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 8,
+    },
+    inputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FCF9F1',
+        borderRadius: 25,
+        height: 50,
+        paddingHorizontal: 15,
+        marginVertical: 10,
+    },
+
+    textInput: {
+        flex: 1,
+        fontSize: 16,
+        color: '#000',
+        marginLeft: 10,
     },
     subheading: {
         fontSize: 14,
@@ -240,10 +330,12 @@ const styles = StyleSheet.create({
     input: {
         width: '100%',
         height: 50,
-        borderWidth: 1,
-        borderColor: '#DDD',
-        borderRadius: 8,
-        paddingHorizontal: 15,
+        // borderWidth: 1,
+        // marginVertical: 10,
+        backgroundColor: "#FCF9F1",
+        // borderColor: '#DDD',
+        borderRadius: 25,
+        paddingHorizontal: 10,
         fontSize: 16,
     },
     inputError: {
@@ -278,8 +370,9 @@ const styles = StyleSheet.create({
     button: {
         width: '100%',
         height: 50,
-        backgroundColor: '#B61723',
-        borderRadius: 8,
+        marginTop: 30,
+        backgroundColor: '#4CAF50',
+        borderRadius: 25,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -298,6 +391,17 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
     },
+    para:{
+        marginTop:20,
+        justifyContent:'center',
+        alignItems:'center'
+
+    },
+    txt:{
+        color:'#6F7A6B',
+        alignItems:'center',
+        textAlign:'center'
+    }
 })
 
 export default Login
