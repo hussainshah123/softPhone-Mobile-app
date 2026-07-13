@@ -322,7 +322,7 @@
 // })
 
 // export default Home
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import HomeHeader from './components/HomeHeader';
@@ -331,8 +331,29 @@ import PremiumCard from './components/PremiumCard';
 import RecentCalls from './components/RecentCalls';
 import FavoriteContacts from './components/FavoriteContacts';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { recentCalls, favoriteContacts } from './data/dummyData';
 
 const Home = ({ navigation }) => {
+    const [searchText, setSearchText] = useState('');
+
+    const filteredRecentCalls = useMemo(() => {
+        if (!searchText.trim()) return recentCalls;
+
+        const query = searchText.toLowerCase();
+        return recentCalls.filter(call =>
+            call.name.toLowerCase().includes(query)
+        );
+    }, [searchText]);
+
+    const filteredFavoriteContacts = useMemo(() => {
+        if (!searchText.trim()) return favoriteContacts;
+
+        const query = searchText.toLowerCase();
+        return favoriteContacts.filter(contact =>
+            contact.name.toLowerCase().includes(query)
+        );
+    }, [searchText]);
+
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView
@@ -341,13 +362,13 @@ const Home = ({ navigation }) => {
             >
                 <HomeHeader />
 
-                <SearchBar />
+                <SearchBar onSearch={setSearchText} />
 
-                <PremiumCard />
+                {!searchText && <PremiumCard />}
 
-                <RecentCalls navigation={navigation} />
+                <RecentCalls navigation={navigation} data={filteredRecentCalls} />
 
-                <FavoriteContacts navigation={navigation} />
+                <FavoriteContacts navigation={navigation} data={filteredFavoriteContacts} />
             </ScrollView>
         </SafeAreaView>
     );

@@ -11,7 +11,9 @@ import {
 
 import { recentCalls } from '../data/dummyData.js'
 
-const RecentCalls = ({ navigation }) => {
+const RecentCalls = ({ navigation, data }) => {
+  const displayData = data || recentCalls;
+
   return (
     <View style={styles.container}>
       <View style={styles.row}>
@@ -25,7 +27,7 @@ const RecentCalls = ({ navigation }) => {
       <FlatList
         horizontal
         showsHorizontalScrollIndicator={false}
-        data={recentCalls}
+        data={displayData}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.item}>

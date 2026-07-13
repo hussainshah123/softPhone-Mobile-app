@@ -1,8 +1,20 @@
-import React from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { SearchIcon } from '../../../utils/svgs/CommonSvgs';
 
-const SearchBar = () => {
+const SearchBar = ({ onSearch }) => {
+    const [searchText, setSearchText] = useState('');
+
+    const handleChangeText = (text) => {
+        setSearchText(text);
+        onSearch?.(text);
+    };
+
+    const handleClear = () => {
+        setSearchText('');
+        onSearch?.('');
+    };
+
     return (
         <View style={styles.container}>
             <SearchIcon width={18} height={18} />
@@ -11,6 +23,8 @@ const SearchBar = () => {
                 placeholder="Search Contact or Number"
                 placeholderTextColor="#A0A0A0"
                 style={styles.input}
+                value={searchText}
+                onChangeText={handleChangeText}
             />
         </View>
     );

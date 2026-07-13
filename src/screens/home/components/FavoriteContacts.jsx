@@ -11,7 +11,9 @@ import ContactCard from './ContactCard';
 import { favoriteContacts } from '../data/dummyData';
 import { FavrateIcon } from '../../../utils/svgs/CommonSvgs';
 
-const FavoriteContacts = ({ navigation }) => {
+const FavoriteContacts = ({ navigation, data }) => {
+  const displayData = data || favoriteContacts;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -26,7 +28,7 @@ const FavoriteContacts = ({ navigation }) => {
       </View>
 
       <FlatList
-        data={favoriteContacts}
+        data={displayData}
         keyExtractor={(item) => item.id}
         numColumns={2}
         columnWrapperStyle={styles.row}
