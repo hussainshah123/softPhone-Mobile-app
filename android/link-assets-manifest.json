@@ -1,0 +1,61 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-Bold.ttf",
+      "sha1": "606f1b32433c9b6902d97c657f9b3a2f89bab582"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-BoldItalic.ttf",
+      "sha1": "3c7982159791d551e0dc9b9e0d2e333fe3bbfd0e"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-ExtraBold.ttf",
+      "sha1": "1f1ff730addefdfe324657b5db5056fb05b4b43b"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-ExtraBoldItalic.ttf",
+      "sha1": "12f7cdcf58d6c7544ee78256e8a3e0f1bc67d6bb"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-ExtraLight.ttf",
+      "sha1": "8c8c67a8c0ffac6da8093fea6a710e4e69492916"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-ExtraLightItalic.ttf",
+      "sha1": "530fa67f1d72599913183f5f5046ba0973c71572"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-Italic.ttf",
+      "sha1": "9511da5fd2efd40a427ba6489635569d85a7a683"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-Light.ttf",
+      "sha1": "88b01027e4d47b1cb0f4e6fbae888ddc81866f78"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-LightItalic.ttf",
+      "sha1": "33a0046a48c1f9ecaa33a73b888de8c6f8730333"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-Medium.ttf",
+      "sha1": "c328c76cab7078b89d925d73809f03c12a00143a"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-MediumItalic.ttf",
+      "sha1": "40b026f7db1b69a439548baa81dac421ac0fa927"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-Regular.ttf",
+      "sha1": "ea07d33f23fb6c4856a642d035c463dc99a7f88a"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-SemiBold.ttf",
+      "sha1": "576ccf10be11652fc309f3682a327a98847c596e"
+    },
+    {
+      "path": "src/assets/fonts/static/PlusJakartaSans-SemiBoldItalic.ttf",
+      "sha1": "693c174f75547d2bc28a319a76efb4575ba1bb02"
+    }
+  ]
+}

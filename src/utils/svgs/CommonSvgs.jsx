@@ -1283,3 +1283,21 @@ export const DownArrowIcon = ({...props}) => (
     <Path d="M6 7.4L0 1.4L1.4 0L6 4.6L10.6 0L12 1.4L6 7.4Z" fill="#6F7A6B" />
   </Svg>
 );
+
+
+
+export const RightIcon = ({...props}) => (
+  <Svg
+    width={props.width || 14}
+    height={props.height || 14}
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <Path
+      d="M12.175 9H0V7H12.175L6.575 1.4L8 0L16 8L8 16L6.575 14.6L12.175 9Z"
+      fill="white"
+    />
+  </Svg>
+);

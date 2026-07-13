@@ -314,12 +314,13 @@ const styles = StyleSheet.create({
         // width is now dynamic
     },
     image: {
-        width: 270,
-        height: 270,
+        width: 400,
+        height: 400,
     },
     text: {
-        fontSize: 20,
+        fontSize: 24,
         fontWeight: 'bold',
+        // fontFamily:"PlusJakartaSans-BoldItalic",
         textAlign: 'center',
         marginTop: 20,
     },

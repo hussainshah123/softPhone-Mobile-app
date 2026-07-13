@@ -28,14 +28,13 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-	  <!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>NSContactsUsageDescription</key>
 	<string>This app needs access to your contacts to display and manage your phone contacts.</string>
 	<key>UILaunchStoryboardName</key>
@@ -57,5 +56,22 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>PlusJakartaSans-Bold.ttf</string>
+		<string>PlusJakartaSans-BoldItalic.ttf</string>
+		<string>PlusJakartaSans-ExtraBold.ttf</string>
+		<string>PlusJakartaSans-ExtraBoldItalic.ttf</string>
+		<string>PlusJakartaSans-ExtraLight.ttf</string>
+		<string>PlusJakartaSans-ExtraLightItalic.ttf</string>
+		<string>PlusJakartaSans-Italic.ttf</string>
+		<string>PlusJakartaSans-Light.ttf</string>
+		<string>PlusJakartaSans-LightItalic.ttf</string>
+		<string>PlusJakartaSans-Medium.ttf</string>
+		<string>PlusJakartaSans-MediumItalic.ttf</string>
+		<string>PlusJakartaSans-Regular.ttf</string>
+		<string>PlusJakartaSans-SemiBold.ttf</string>
+		<string>PlusJakartaSans-SemiBoldItalic.ttf</string>
+	</array>
 </dict>
 </plist>

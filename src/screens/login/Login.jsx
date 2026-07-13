@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { EyeOpenIcon, EyeCloseIcon, SipIcon, LoginIcon, SpeakerIcon, SplashIcon, InvolopIcon, UrlIcon, PortIcon, LockIcon } from '../../utils/svgs/CommonSvgs'
+import { EyeOpenIcon, EyeCloseIcon, SipIcon, LoginIcon, SpeakerIcon, SplashIcon, InvolopIcon, UrlIcon, PortIcon, LockIcon, RightIcon } from '../../utils/svgs/CommonSvgs'
 import { registerSIP } from '../../services/sipService'
 import CustomAlert from '../../components/CustomAlert'
 
@@ -230,7 +230,7 @@ const Login = ({ navigation }) => {
                         <>
                             <Text style={styles.buttonText}>Login</Text>
                             <View style={styles.arrow}>
-                                <LoginIcon />
+                                <RightIcon />
                             </View>
                         </>
                     )}
