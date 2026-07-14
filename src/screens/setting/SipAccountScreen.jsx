@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -8,23 +8,124 @@ import {
     ScrollView,
     StatusBar,
     Image,
+    ActivityIndicator,
 } from 'react-native';
 import { SaveIcon, EyeOpenIcon, EyeCloseIcon, BackIcon } from '../../utils/svgs/CommonSvgs';
 import Header from '../../components/Header';
+import firebaseService from '../../services/firebaseService';
+import CustomAlert from '../../components/CustomAlert';
 
 const SipAccountScreen = ({ navigation }) => {
-    const [sipId, setSipId] = useState('user@sip.connectsphere.com');
-    const [displayName, setDisplayName] = useState('Alex Morgan');
+    const [sipId, setSipId] = useState('');
+    const [displayName, setDisplayName] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [serverUrl, setServerUrl] = useState('sip.connectsphere.com');
-    const [port, setPort] = useState('5060');
+    const [serverUrl, setServerUrl] = useState('');
+    const [port, setPort] = useState('');
     const [transport, setTransport] = useState('UDP');
+    const [loading, setLoading] = useState(true);
+    const [alert, setAlert] = useState({
+        visible: false,
+        type: 'success',
+        title: '',
+        message: '',
+        confirmText: 'OK',
+        onConfirm: null,
+    });
 
-    const handleSave = () => {
-        console.log('Saving SIP account settings');
-        navigation.goBack();
+    useEffect(() => {
+        loadCredentials();
+    }, []);
+
+    const loadCredentials = async () => {
+        try {
+            setLoading(true);
+            const credentials = await firebaseService.getLocalSIPCredentials();
+
+            if (credentials) {
+                setSipId(credentials.username || '');
+                setServerUrl(credentials.server || '');
+                setPort(credentials.port || '');
+                setPassword(credentials.password || '');
+                console.log('[SipAccountScreen] Credentials loaded:', credentials);
+            } else {
+                console.log('[SipAccountScreen] No credentials found');
+            }
+        } catch (error) {
+            console.error('[SipAccountScreen] Error loading credentials:', error);
+            setAlert({
+                visible: true,
+                type: 'error',
+                title: 'Error',
+                message: 'Failed to load SIP credentials',
+                confirmText: 'OK',
+                onConfirm: () => setAlert({ ...alert, visible: false }),
+            });
+        } finally {
+            setLoading(false);
+        }
     };
+
+    const handleSave = async () => {
+        try {
+            const userId = await firebaseService.getStoredUserId();
+
+            if (!userId) {
+                setAlert({
+                    visible: true,
+                    type: 'error',
+                    title: 'Error',
+                    message: 'No user session found. Please log in again.',
+                    confirmText: 'OK',
+                    onConfirm: () => {
+                        setAlert({ ...alert, visible: false });
+                        navigation.goBack();
+                    },
+                });
+                return;
+            }
+
+            const updatedCredentials = {
+                username: sipId,
+                password: password,
+                server: serverUrl,
+                port: port,
+            };
+
+            await firebaseService.saveSIPCredentials(userId, updatedCredentials);
+
+            setAlert({
+                visible: true,
+                type: 'success',
+                title: 'Success',
+                message: 'SIP credentials updated successfully',
+                confirmText: 'OK',
+                onConfirm: () => {
+                    setAlert({ ...alert, visible: false });
+                    navigation.goBack();
+                },
+            });
+        } catch (error) {
+            console.error('[SipAccountScreen] Error saving credentials:', error);
+            setAlert({
+                visible: true,
+                type: 'error',
+                title: 'Error',
+                message: error.message || 'Failed to save credentials',
+                confirmText: 'OK',
+                onConfirm: () => setAlert({ ...alert, visible: false }),
+            });
+        }
+    };
+
+    if (loading) {
+        return (
+            <View style={[styles.container, styles.centerContent]}>
+                <ActivityIndicator size="large" color="#006E1C" />
+                <Text style={styles.loadingText}>Loading credentials...</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -152,6 +253,16 @@ const SipAccountScreen = ({ navigation }) => {
                     <Text style={styles.saveButtonText}>Save Changes</Text>
                 </TouchableOpacity>
             </ScrollView>
+
+            <CustomAlert
+                visible={alert.visible}
+                type={alert.type}
+                title={alert.title}
+                message={alert.message}
+                confirmText={alert.confirmText}
+                onConfirm={alert.onConfirm}
+                onCancel={() => setAlert({ ...alert, visible: false })}
+            />
         </View>
     );
 };
@@ -160,6 +271,16 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F4FBF1CC',
+    },
+    centerContent: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 12,
+        fontSize: 16,
+        color: '#006E1C',
+        fontWeight: '500',
     },
     headerAvatar: {
         width: 32,

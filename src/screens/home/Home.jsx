@@ -322,7 +322,7 @@
 // })
 
 // export default Home
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import HomeHeader from './components/HomeHeader';
@@ -332,9 +332,33 @@ import RecentCalls from './components/RecentCalls';
 import FavoriteContacts from './components/FavoriteContacts';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { recentCalls, favoriteContacts } from './data/dummyData';
+import sipConnectionManager from '../../services/sipConnectionManager';
 
 const Home = ({ navigation }) => {
     const [searchText, setSearchText] = useState('');
+
+    useEffect(() => {
+        const initializeSIPConnection = async () => {
+            try {
+                console.log('[Home] Initializing SIP connection...');
+                const success = await sipConnectionManager.initializeConnection();
+                if (success) {
+                    console.log('[Home] SIP connection initialized successfully');
+                } else {
+                    console.log('[Home] SIP connection initialization attempted but user may not be authenticated');
+                }
+            } catch (error) {
+                console.error('[Home] Error initializing SIP connection:', error.message);
+            }
+        };
+
+        initializeSIPConnection();
+
+        return () => {
+            // Cleanup on unmount
+            console.log('[Home] Component unmounting, keeping SIP connection active');
+        };
+    }, []);
 
     const filteredRecentCalls = useMemo(() => {
         if (!searchText.trim()) return recentCalls;

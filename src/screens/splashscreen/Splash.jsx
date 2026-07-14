@@ -2,12 +2,28 @@ import React, { useEffect } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { HeadphoneIcon, SplashIcon } from '../../utils/svgs/CommonSvgs';
+import firebaseService from '../../services/firebaseService';
 
 const Splash = ({ navigation }) => {
     useEffect(() => {
-        const timer = setTimeout(() => {
-            navigation.replace('Onboarding');
-        }, 3000);
+        const checkAuthAndNavigate = async () => {
+            try {
+                const isAuthenticated = await firebaseService.isUserAuthenticated();
+
+                if (isAuthenticated) {
+                    console.log('[Splash] User authenticated, navigating to BottomTabs');
+                    navigation.replace('BottomTabs');
+                } else {
+                    console.log('[Splash] User not authenticated, navigating to Onboarding');
+                    navigation.replace('Onboarding');
+                }
+            } catch (error) {
+                console.error('[Splash] Error checking authentication:', error);
+                navigation.replace('Onboarding');
+            }
+        };
+
+        const timer = setTimeout(checkAuthAndNavigate, 3000);
 
         return () => clearTimeout(timer);
     }, [navigation]);

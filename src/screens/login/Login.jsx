@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { EyeOpenIcon, EyeCloseIcon, SipIcon, LoginIcon, SpeakerIcon, SplashIcon, InvolopIcon, UrlIcon, PortIcon, LockIcon, RightIcon } from '../../utils/svgs/CommonSvgs'
 import { registerSIP } from '../../services/sipService'
 import CustomAlert from '../../components/CustomAlert'
+import firebaseService from '../../services/firebaseService'
 
 const Login = ({ navigation }) => {
     const [formData, setFormData] = useState({
@@ -63,12 +64,15 @@ const Login = ({ navigation }) => {
                 formData.port
             )
 
-            await AsyncStorage.setItem('sipCredentials', JSON.stringify({
+            const credentials = {
                 username: formData.sipUsername,
                 password: formData.sipPassword,
                 server: formData.sipServer,
                 port: formData.port,
-            }))
+            }
+
+            const userId = `${formData.sipUsername}_${Date.now()}`
+            await firebaseService.saveSIPCredentials(userId, credentials)
 
             console.log('[SIP] Login successful:', response)
             setLoading(false)

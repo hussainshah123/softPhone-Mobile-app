@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "947055478391",
+    "project_id": "softphone-88878",
+    "storage_bucket": "softphone-88878.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:947055478391:android:05b071ed046fc4b9d0e872",
+        "android_client_info": {
+          "package_name": "com.newapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDalW8m-EEw6U3O8Y0Vg_2S8U7jRZRQgrs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

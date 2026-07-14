@@ -24,9 +24,9 @@ const ContactCard = ({ item }) => {
         <TouchableOpacity style={styles.callicon}>
           <PhoneAcceptIcon />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.VideoIcon}>
+        {/* <TouchableOpacity style={styles.VideoIcon}>
           <VideoCallIcon />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
       </View>
     </TouchableOpacity>

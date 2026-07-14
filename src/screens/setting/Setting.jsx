@@ -13,6 +13,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AboutIcon, ConfrenceCall, DoNotDistrubIcon, HelpAndSupportIcon, HelpIcon, KeyIcon, LogoutIcon, NotificationIcon, RightArrowIcon, RingIcon, SignalIcon, SipAccountIcon, VoiceMailIcon, VolumIcon } from '../../utils/svgs/CommonSvgs';
 import Header from '../../components/Header';
 import CustomAlert from '../../components/CustomAlert';
+import firebaseService from '../../services/firebaseService';
+import sipConnectionManager from '../../services/sipConnectionManager';
 
 const Setting = ({ navigation }) => {
     const [isDND, setIsDND] = useState(true);
@@ -108,13 +110,23 @@ const Setting = ({ navigation }) => {
                             cancelText: 'Cancel',
                             onConfirm: async () => {
                                 try {
-                                    await AsyncStorage.clear();
+                                    sipConnectionManager.stopConnectionMonitoring();
+                                    const userId = await firebaseService.getStoredUserId();
+                                    if (userId) {
+                                        await firebaseService.logoutUser(userId);
+                                    }
                                     navigation.reset({
                                         index: 0,
                                         routes: [{ name: 'Login' }],
                                     });
                                 } catch (error) {
                                     console.error('Logout error:', error);
+                                    sipConnectionManager.stopConnectionMonitoring();
+                                    await firebaseService.clearCredentials();
+                                    navigation.reset({
+                                        index: 0,
+                                        routes: [{ name: 'Login' }],
+                                    });
                                 }
                             },
                         });
