@@ -333,9 +333,11 @@ import FavoriteContacts from './components/FavoriteContacts';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { recentCalls, favoriteContacts } from './data/dummyData';
 import sipConnectionManager from '../../services/sipConnectionManager';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Home = ({ navigation }) => {
     const [searchText, setSearchText] = useState('');
+    const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
         const initializeSIPConnection = async () => {
@@ -359,6 +361,14 @@ const Home = ({ navigation }) => {
             console.log('[Home] Component unmounting, keeping SIP connection active');
         };
     }, []);
+
+    // Refresh data when screen comes into focus
+    useFocusEffect(
+        React.useCallback(() => {
+            console.log('[Home] Screen focused, refreshing data');
+            setRefreshKey(prev => prev + 1);
+        }, [])
+    );
 
     const filteredRecentCalls = useMemo(() => {
         if (!searchText.trim()) return recentCalls;
@@ -390,9 +400,17 @@ const Home = ({ navigation }) => {
 
                 {!searchText && <PremiumCard />}
 
-                <RecentCalls navigation={navigation} data={filteredRecentCalls} />
+                <RecentCalls
+                    key={`recent-${refreshKey}`}
+                    navigation={navigation}
+                    data={filteredRecentCalls}
+                />
 
-                <FavoriteContacts navigation={navigation} data={filteredFavoriteContacts} />
+                <FavoriteContacts
+                    key={`favorite-${refreshKey}`}
+                    navigation={navigation}
+                    data={filteredFavoriteContacts}
+                />
             </ScrollView>
         </SafeAreaView>
     );

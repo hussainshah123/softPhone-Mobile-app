@@ -12,6 +12,7 @@ import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import Header from '../../components/Header';
 import { FilterIcon, NotificationIcon } from '../../utils/svgs/CommonSvgs';
 import { getCallHistory } from '../../services/callHistoryService';
+import { saveFavorite, removeFavorite, isFavorite } from '../../services/favoritesService';
 import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
@@ -39,6 +40,7 @@ const formatTime = (timestamp) => {
 const RecentCallHistory = () => {
   const [index, setIndex] = useState(0);
   const [allCalls, setAllCalls] = useState([]);
+  const [favorites, setFavorites] = useState(new Set());
   const [routes] = useState([
     { key: 'all', title: 'All' },
     { key: 'missed', title: 'Missed' },
@@ -49,45 +51,93 @@ const RecentCallHistory = () => {
   useFocusEffect(
     React.useCallback(() => {
       const loadHistory = async () => {
-        const history = await getCallHistory()
-        console.log('[RecentCallHistory] Loaded history:', history.length, 'items')
+        const history = await getCallHistory();
+        console.log('[RecentCallHistory] Loaded history:', history.length, 'items');
+
+        // Load favorites
+        const favSet = new Set();
+        for (const call of history) {
+          const isFav = await isFavorite(call.number);
+          if (isFav) {
+            favSet.add(call.number);
+          }
+        }
+        setFavorites(favSet);
+
         const formatted = history.map(call => ({
           id: call.id,
+          number: call.number,
           name: call.name,
           subtitle: call.number,
           time: formatTime(call.timestamp || Date.now()),
           type: call.type,
           ...getCallIcon(call.type)
-        }))
-        setAllCalls(formatted)
-      }
-      loadHistory()
+        }));
+        setAllCalls(formatted);
+      };
+      loadHistory();
     }, [])
-  )
+  );
+
+  const handleToggleFavorite = async (call) => {
+    const newFavorites = new Set(favorites);
+
+    if (newFavorites.has(call.number)) {
+      // Remove from favorites
+      await removeFavorite(call.number);
+      newFavorites.delete(call.number);
+      console.log('[RecentCallHistory] Removed from favorites:', call.number);
+    } else {
+      // Add to favorites
+      const added = await saveFavorite({
+        name: call.name,
+        number: call.number,
+      });
+      if (added) {
+        newFavorites.add(call.number);
+        console.log('[RecentCallHistory] Added to favorites:', call.number);
+      }
+    }
+
+    setFavorites(newFavorites);
+  };
 
   const missedCalls = allCalls.filter(item => item.type === 'missed');
   const incomingCalls = allCalls.filter(item => item.type === 'incoming');
   const outgoingCalls = allCalls.filter(item => item.type === 'outgoing');
 
-  const renderCallItem = ({ item }) => (
-    <View style={styles.callCard}>
-      <View style={styles.callInfo}>
-        <View style={[styles.callIconContainer, { backgroundColor: `${item.iconColor}15` }]}>
-          <Text style={[styles.callTypeIcon, { color: item.iconColor }]}>{item.icon}</Text>
+  const renderCallItem = ({ item }) => {
+    const isFav = favorites.has(item.number);
+
+    return (
+      <View style={styles.callCard}>
+        <View style={styles.callInfo}>
+          <View style={[styles.callIconContainer, { backgroundColor: `${item.iconColor}15` }]}>
+            <Text style={[styles.callTypeIcon, { color: item.iconColor }]}>{item.icon}</Text>
+          </View>
+
+          <View style={styles.callDetails}>
+            <Text style={styles.callName}>{item.name}</Text>
+            <Text style={styles.callSubtitle}>{item.subtitle}</Text>
+            <Text style={styles.callTime}>{item.time}</Text>
+          </View>
         </View>
 
-        <View style={styles.callDetails}>
-          <Text style={styles.callName}>{item.name}</Text>
-          <Text style={styles.callSubtitle}>{item.subtitle}</Text>
-          <Text style={styles.callTime}>{item.time}</Text>
+        <View style={styles.buttonGroup}>
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={() => handleToggleFavorite(item)}
+          >
+            <Text style={styles.favoriteButtonIcon}>{isFav ? '⭐' : '☆'}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.callButton}>
+            <Text style={styles.callButtonIcon}>📞</Text>
+          </TouchableOpacity>
         </View>
       </View>
-
-      <TouchableOpacity style={styles.callButton}>
-        <Text style={styles.callButtonIcon}>📞</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   const AllRoute = () => (
     <FlatList
@@ -286,6 +336,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#888',
     marginTop: 2,
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  favoriteButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#fff9e6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ffd700',
+  },
+  favoriteButtonIcon: {
+    fontSize: 18,
   },
   callButton: {
     width: 40,

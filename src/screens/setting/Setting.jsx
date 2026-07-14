@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -8,6 +8,7 @@ import {
     StatusBar,
     Switch,
     ScrollView,
+    ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AboutIcon, ConfrenceCall, DoNotDistrubIcon, HelpAndSupportIcon, HelpIcon, KeyIcon, LogoutIcon, NotificationIcon, RightArrowIcon, RingIcon, SignalIcon, SipAccountIcon, VoiceMailIcon, VolumIcon } from '../../utils/svgs/CommonSvgs';
@@ -15,9 +16,15 @@ import Header from '../../components/Header';
 import CustomAlert from '../../components/CustomAlert';
 import firebaseService from '../../services/firebaseService';
 import sipConnectionManager from '../../services/sipConnectionManager';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Setting = ({ navigation }) => {
     const [isDND, setIsDND] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [credentials, setCredentials] = useState({
+        username: 'User',
+        port: '5060',
+    });
     const [alert, setAlert] = useState({
         visible: false,
         type: 'warning',
@@ -26,6 +33,30 @@ const Setting = ({ navigation }) => {
         confirmText: 'OK',
         onConfirm: null,
     });
+
+    useFocusEffect(
+        React.useCallback(() => {
+            loadCredentials();
+        }, [])
+    );
+
+    const loadCredentials = async () => {
+        try {
+            setLoading(true);
+            const creds = await firebaseService.getLocalSIPCredentials();
+            if (creds) {
+                setCredentials({
+                    username: creds.username || 'User',
+                    port: creds.port || '5060',
+                });
+                console.log('[Setting] Credentials loaded:', creds.username);
+            }
+        } catch (error) {
+            console.error('[Setting] Error loading credentials:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -50,14 +81,27 @@ const Setting = ({ navigation }) => {
             >
                 {/* User Profile */}
                 <View style={styles.profileCard}>
-                    <Image
-                        source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
-                        style={styles.profileAvatar}
-                    />
-                    <View style={styles.profileInfo}>
-                        <Text style={styles.profileName}>Alex Mercer</Text>
-                        <Text style={styles.profileEmail}>sip.alex@softphone.enterprise.com</Text>
-                    </View>
+                    {loading ? (
+                        <ActivityIndicator size="large" color="#006E1C" />
+                    ) : (
+                        <>
+                            <View style={styles.avatarContainer}>
+                                <Text style={styles.avatarInitials}>
+                                    {(credentials.username || 'U')
+                                        .split(' ')
+                                        .slice(0, 2)
+                                        .map(part => part[0])
+                                        .join('')
+                                        .toUpperCase()}
+                                </Text>
+                            </View>
+                            <View style={styles.profileInfo}>
+                                <Text style={styles.profileName}>{credentials.username}</Text>
+                                <Text style={styles.profileEmail}>Port: {credentials.port}</Text>
+                                <Text style={styles.registrationStatus}>✓ Connected</Text>
+                            </View>
+                        </>
+                    )}
                 </View>
 
                 {/* ACCOUNT Section */}
@@ -173,7 +217,21 @@ const styles = StyleSheet.create({
         marginTop: 16,
         borderRadius: 12,
         alignItems: 'center',
-
+        flexDirection: 'row',
+    },
+    avatarContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#006E1C',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 20,
+    },
+    avatarInitials: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
     },
     profileAvatar: {
         width: 100,
@@ -183,14 +241,21 @@ const styles = StyleSheet.create({
     },
     profileName: {
         fontSize: 20,
-        textAlign: 'center',
+        textAlign: 'left',
         fontWeight: '700',
+        marginBottom: 4,
     },
     profileEmail: {
-        fontSize: 14,
+        fontSize: 12,
         color: '#666',
-        textAlign: 'center',
-        marginVertical: 4,
+        textAlign: 'left',
+        marginVertical: 2,
+    },
+    registrationStatus: {
+        fontSize: 12,
+        color: '#22c55e',
+        fontWeight: '600',
+        marginTop: 4,
     },
     registeredBadge: {
         backgroundColor: '#22c55e',

@@ -14,19 +14,26 @@ const OutgoingCall = ({ route, navigation }) => {
   const navigatedBack = useRef(false)
 
   const returnToApp = () => {
-    if (navigatedBack.current) return
+    if (navigatedBack.current) {
+      console.log('[OutgoingCall] Already navigated, skipping')
+      return
+    }
     navigatedBack.current = true
+    console.log('[OutgoingCall] Navigating back to BottomTabs')
+
     try {
-      if (navigation.canGoBack()) {
-        navigation.goBack()
-      } else {
-        navigation.navigate('BottomTabs')
-      }
+      // Force reset to BottomTabs
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'BottomTabs' }],
+      })
     } catch (e) {
+      console.error('[OutgoingCall] Reset navigation failed:', e)
       try {
+        // Fallback to navigate
         navigation.navigate('BottomTabs')
       } catch (err) {
-        console.error('[OutgoingCall] Navigation back failed:', err)
+        console.error('[OutgoingCall] Navigate failed:', err)
       }
     }
   }
@@ -103,25 +110,39 @@ const OutgoingCall = ({ route, navigation }) => {
   }
 
   const handleEndCall = async () => {
-    // Save call history - wait for it to complete
-    saveCallHistory({
-      name: displayName,
-      number: phoneNumber,
-      type: 'outgoing',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }).then(() => {
-      console.log('[OutgoingCall] Call history saved')
-    }).catch(err => console.error('[OutgoingCall] Save error:', err))
+    console.log('[OutgoingCall] User initiated call end')
+
     try {
-      await hangupCall()
+      // Send hangup command to SIP server
+      console.log('[OutgoingCall] Sending hangup command...')
+      const hangupResult = await hangupCall()
+      console.log('[OutgoingCall] Hangup command result:', hangupResult)
     } catch (error) {
-      console.error('[SIP] Hangup failed:', error?.message || error)
+      console.error('[OutgoingCall] Hangup command error:', error?.message || error)
     }
-    
-    // Small delay to ensure async storage completes
-    setTimeout(() => {
+
+    // Save call history immediately
+    try {
+      await saveCallHistory({
+        name: displayName,
+        number: phoneNumber,
+        type: 'outgoing',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      })
+      console.log('[OutgoingCall] Call history saved')
+    } catch (err) {
+      console.error('[OutgoingCall] Save error:', err)
+    }
+
+    // Navigate back with a timeout fallback
+    // First timeout: Give SIP time to process (1 second)
+    const navigationTimeout = setTimeout(() => {
+      console.log('[OutgoingCall] Navigation timeout triggered - forcing return to app')
       returnToApp()
-    }, 200)
+    }, 1000)
+
+    // Also wait for the event listener to trigger (which should be faster)
+    // The event listener will call returnToApp() when 'ended' is received
   }
 
   const handleSpeakerToggle = async () => {

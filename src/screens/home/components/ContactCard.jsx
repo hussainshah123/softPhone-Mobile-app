@@ -9,14 +9,29 @@ import {
 import { CallIcon, PhoneAcceptIcon, VideoCallIcon } from '../../../utils/svgs/CommonSvgs';
 
 const ContactCard = ({ item }) => {
+  const initials = (item.name || item.number || '?')
+    .split(' ')
+    .slice(0, 2)
+    .map(part => part[0])
+    .join('')
+    .toUpperCase();
+
+  const hasImage = item.image && item.image.startsWith('http');
+
   return (
     <TouchableOpacity style={styles.card}>
-      <Image
-        source={{ uri: item.image }}
-        style={styles.image}
-      />
+      {hasImage ? (
+        <Image
+          source={{ uri: item.image }}
+          style={styles.image}
+        />
+      ) : (
+        <View style={styles.avatarContainer}>
+          <Text style={styles.initials}>{initials}</Text>
+        </View>
+      )}
 
-      <Text style={styles.name}>
+      <Text style={styles.name} numberOfLines={1}>
         {item.name}
       </Text>
 
@@ -57,10 +72,27 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
+  avatarContainer: {
+    width: 75,
+    height: 75,
+    borderRadius: 40,
+    backgroundColor: '#006E1C',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+
+  initials: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+
   name: {
     fontSize: 16,
     fontWeight: '700',
     color: '#222',
+    maxWidth: '100%',
   },
 
   status: {

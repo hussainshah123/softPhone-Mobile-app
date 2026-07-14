@@ -161,23 +161,50 @@ export const makeCall = async (_username, _password, _server, _port, destination
 
 export const hangupCall = async () => {
     if (!SipRegistration?.hangupCall) {
-        return
+        logError('hangupCall is not available in native module')
+        throw new Error('Hangup is not available on this build. Please rebuild the app.')
     }
-    await SipRegistration.hangupCall()
+    try {
+        log('Calling native hangupCall()')
+        const result = await SipRegistration.hangupCall()
+        log('hangupCall result:', result)
+        return result
+    } catch (error) {
+        logError('hangupCall native error:', error)
+        throw error
+    }
 }
 
 export const answerCall = async () => {
     if (!SipRegistration?.answerCall) {
+        logError('answerCall is not available in native module')
         throw new Error('Answer is not available on this build.')
     }
-    return SipRegistration.answerCall()
+    try {
+        log('Calling native answerCall()')
+        const result = await SipRegistration.answerCall()
+        log('answerCall result:', result)
+        return result
+    } catch (error) {
+        logError('answerCall native error:', error)
+        throw error
+    }
 }
 
 export const declineCall = async () => {
     if (!SipRegistration?.declineCall) {
-        return
+        logError('declineCall is not available in native module')
+        throw new Error('Decline is not available on this build. Please rebuild the app.')
     }
-    await SipRegistration.declineCall()
+    try {
+        log('Calling native declineCall()')
+        const result = await SipRegistration.declineCall()
+        log('declineCall result:', result)
+        return result
+    } catch (error) {
+        logError('declineCall native error:', error)
+        throw error
+    }
 }
 
 export const toggleSpeaker = async () => {

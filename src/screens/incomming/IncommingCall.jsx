@@ -53,19 +53,41 @@ const IncommingCall = ({ route, navigation }) => {
   }
 
   const handleDecline = async () => {
-    saveCallHistory({
-      name: displayName,
-      number: phoneNumber,
-      type: 'missed',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    })
+    console.log('[IncomingCall] User declined call')
     try {
-      await declineCall()
+      console.log('[IncomingCall] Sending decline command...')
+      const declineResult = await declineCall()
+      console.log('[IncomingCall] Decline command result:', declineResult)
     } catch (error) {
-      console.error('[SIP] Decline failed:', error?.message || error)
-    } finally {
-      navigation.replace('BottomTabs')
+      console.error('[IncomingCall] Decline command error:', error?.message || error)
     }
+
+    // Try to save call history
+    try {
+      await saveCallHistory({
+        name: displayName,
+        number: phoneNumber,
+        type: 'missed',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      })
+      console.log('[IncomingCall] Call history saved')
+    } catch (err) {
+      console.error('[IncomingCall] Save error:', err)
+    }
+
+    // Navigate back with timeout fallback
+    setTimeout(() => {
+      console.log('[IncomingCall] Navigation timeout triggered - returning to BottomTabs')
+      try {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'BottomTabs' }],
+        })
+      } catch (e) {
+        console.error('[IncomingCall] Reset failed:', e)
+        navigation.replace('BottomTabs')
+      }
+    }, 1000)
   }
 
   const handleAccept = async () => {
@@ -75,22 +97,53 @@ const IncommingCall = ({ route, navigation }) => {
       return
     }
     try {
+      console.log('[IncomingCall] Sending answer command...')
       await answerCall()
+      console.log('[IncomingCall] Answer command successful')
       setCallStatus('Connected')
     } catch (error) {
-      console.error('[SIP] Answer failed:', error?.message || error)
+      console.error('[IncomingCall] Answer failed:', error?.message || error)
+      Alert.alert('Error', 'Failed to answer call')
       navigation.replace('BottomTabs')
     }
   }
 
   const handleEndCall = async () => {
+    console.log('[IncomingCall] User ended call')
     try {
-      await hangupCall()
+      console.log('[IncomingCall] Sending hangup command...')
+      const hangupResult = await hangupCall()
+      console.log('[IncomingCall] Hangup command result:', hangupResult)
     } catch (error) {
-      console.error('[SIP] Hangup failed:', error?.message || error)
-    } finally {
-      navigation.replace('BottomTabs')
+      console.error('[IncomingCall] Hangup command error:', error?.message || error)
     }
+
+    // Try to save call history
+    try {
+      await saveCallHistory({
+        name: displayName,
+        number: phoneNumber,
+        type: 'incoming',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      })
+      console.log('[IncomingCall] Call history saved')
+    } catch (err) {
+      console.error('[IncomingCall] Save error:', err)
+    }
+
+    // Navigate back with timeout fallback
+    setTimeout(() => {
+      console.log('[IncomingCall] Navigation timeout triggered - returning to BottomTabs')
+      try {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'BottomTabs' }],
+        })
+      } catch (e) {
+        console.error('[IncomingCall] Reset failed:', e)
+        navigation.replace('BottomTabs')
+      }
+    }, 1000)
   }
 
   const handleSpeakerToggle = async () => {

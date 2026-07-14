@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,18 +6,84 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
-
-
-import { recentCalls } from '../data/dummyData.js'
+import { getCallHistory } from '../../../services/callHistoryService';
 
 const RecentCalls = ({ navigation, data }) => {
-  const displayData = data || recentCalls;
+  const [callHistory, setCallHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadCallHistory();
+  }, []);
+
+  const loadCallHistory = async () => {
+    try {
+      setLoading(true);
+      const history = await getCallHistory();
+      console.log('[RecentCalls] Loaded call history:', history.length, 'calls');
+
+      // Get unique contacts (first 6 unique phone numbers)
+      const uniqueContacts = [];
+      const seenNumbers = new Set();
+
+      for (const call of history) {
+        if (!seenNumbers.has(call.number) && uniqueContacts.length < 6) {
+          seenNumbers.add(call.number);
+          uniqueContacts.push({
+            id: call.number,
+            name: call.name || call.number,
+            number: call.number,
+            image: `https://i.pravatar.cc/150?u=${call.number}`,
+          });
+        }
+      }
+
+      console.log('[RecentCalls] Unique contacts:', uniqueContacts.length);
+      setCallHistory(uniqueContacts);
+    } catch (error) {
+      console.error('[RecentCalls] Failed to load call history:', error);
+      setCallHistory([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Always use loaded data, ignore data prop when we have loaded history
+  const displayData = callHistory.length > 0 ? callHistory : (data || []);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.row}>
+          <Text style={styles.title}>Recent Calls</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('RecentCallHistory')}>
+            <Text style={styles.seeall}>See All</Text>
+          </TouchableOpacity>
+        </View>
+        <ActivityIndicator size="small" color="#4CAF50" style={{ paddingVertical: 20 }} />
+      </View>
+    );
+  }
+
+  if (displayData.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.row}>
+          <Text style={styles.title}>Recent Calls</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('RecentCallHistory')}>
+            <Text style={styles.seeall}>See All</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.emptyText}>No recent calls</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-
         <Text style={styles.title}>Recent Calls</Text>
         <TouchableOpacity onPress={() => navigation.navigate('RecentCallHistory')}>
           <Text style={styles.seeall}>See All</Text>
@@ -29,18 +95,26 @@ const RecentCalls = ({ navigation, data }) => {
         showsHorizontalScrollIndicator={false}
         data={displayData}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Image
-              source={{ uri: item.image }}
-              style={styles.image}
-            />
+        renderItem={({ item }) => {
+          const initials = (item.name || item.number || '?')
+            .split(' ')
+            .slice(0, 2)
+            .map(part => part[0])
+            .join('')
+            .toUpperCase();
 
-            <Text style={styles.name}>
-              {item.name}
-            </Text>
-          </View>
-        )}
+          return (
+            <View style={styles.item}>
+              <View style={styles.avatarContainer}>
+                <Text style={styles.initials}>{initials}</Text>
+              </View>
+
+              <Text style={styles.name} numberOfLines={1}>
+                {item.name}
+              </Text>
+            </View>
+          );
+        }}
       />
     </View>
   );
@@ -75,15 +149,31 @@ const styles = StyleSheet.create({
     marginRight: 18,
   },
 
-  image: {
+  avatarContainer: {
     width: 70,
     height: 70,
     borderRadius: 35,
+    backgroundColor: '#006E1C',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 8,
+  },
+
+  initials: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
 
   name: {
     fontSize: 13,
     color: '#555',
+    maxWidth: 70,
+  },
+
+  emptyText: {
+    fontSize: 14,
+    color: '#999',
+    paddingVertical: 20,
   },
 });
