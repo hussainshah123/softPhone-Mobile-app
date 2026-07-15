@@ -158,7 +158,13 @@ const Contact = () => {
           <TabBar
             {...props}
             indicatorStyle={{ backgroundColor: 'transparent', height: 3 }}
-            style={{ backgroundColor: '#fff' }}
+            style={{
+              backgroundColor: '#F4FBF1CC',
+              elevation: 0,      // Android shadow remove
+              shadowOpacity: 0,  // iOS shadow remove
+              borderBottomWidth: 0,
+              borderTopWidth: 0,
+            }}
             activeColor="#4CAF50"
             inactiveColor="#888"
             labelStyle={{ fontWeight: '600', textTransform: 'none' }}
@@ -172,7 +178,7 @@ const Contact = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F4FBF1CC',
   },
   headerAvatar: {
     width: 32,
@@ -182,7 +188,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#F4FBF1CC',
     borderRadius: 10,
     paddingHorizontal: 12,
     marginHorizontal: 16,

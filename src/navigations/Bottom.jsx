@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import Home from '../screens/home/Home'
 import DialPad from '../screens/dialpad/DialPad'
-import RecentCall from '../screens/recent/RecentCall'
+import RecentCallHistory from '../screens/home/RecentCallHistory'
 import Contact from '../screens/contact/Contact'
 import Setting from '../screens/setting/Setting'
 import { HomeIcon, DialPadIcon, RecentIcon, ContactIcon, SettingIcon, DialIcon, RecentWatchIcon, HomeMainIcon, PhoneAcceptIcon, ProfileIcon } from '../utils/svgs/CommonSvgs'
@@ -76,7 +76,7 @@ const Bottom = () => {
             />
             <Tab.Screen
                 name="Recent"
-                component={RecentCall}
+                component={RecentCallHistory}
                 options={{
                     tabBarLabelStyle: {
                         color: '#8A8A8A',
@@ -123,6 +123,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: 64,
         height: 64,
+        left:5,
         borderRadius: 32,
         backgroundColor: '#006E1C',
         elevation: 8,

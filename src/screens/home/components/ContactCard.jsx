@@ -46,7 +46,7 @@ const ContactCard = ({ item }) => {
           style={styles.callicon}
           onPress={() => startCall(navigation, item.number, item.name)}
         >
-          <PhoneAcceptIcon />
+          <PhoneAcceptIcon fill={"#7ED957"} />
         </TouchableOpacity>
         {/* <TouchableOpacity style={styles.VideoIcon}>
           <VideoCallIcon />
@@ -84,9 +84,11 @@ const styles = StyleSheet.create({
   avatarContainer: {
     width: 75,
     height: 75,
-    borderRadius: 40,
-    backgroundColor: '#006E1C',
+    borderWidth: 2,
+    borderColor: '#7ED957',
     justifyContent: 'center',
+    borderRadius: 60,
+
     alignItems: 'center',
     marginBottom: 10,
   },
@@ -94,7 +96,7 @@ const styles = StyleSheet.create({
   initials: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#7ED957',
   },
 
   name: {
@@ -109,24 +111,26 @@ const styles = StyleSheet.create({
     color: '#7ED957',
     fontSize: 12,
   },
-  callicon:{
-    backgroundColor:'#4CAF50',
-    borderRadius:20,
-    padding:8,
-    marginRight:10
+  callicon: {
+    paddingHorizontal: 40,
+    borderColor: '#4CAF50',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 8,
+    // marginRight: 10
   },
-  VideoIcon:{
-    paddingTop:13,
-    backgroundColor:'#fff',
-    borderRadius:20,
+  VideoIcon: {
+    paddingTop: 13,
+    backgroundColor: '#fff',
+    borderRadius: 20,
     // padding:8,
-    paddingHorizontal:12,
-    borderWidth:1,
-    borderColor:'#4CAF50',
-    marginRight:10
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    marginRight: 10
   },
-  iconContainer:{
-    flexDirection:'row',
-    marginTop:10
+  iconContainer: {
+    flexDirection: 'row',
+    marginTop: 10
   }
 });

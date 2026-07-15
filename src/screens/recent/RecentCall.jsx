@@ -147,8 +147,14 @@ const RecentCall = () => {
         renderTabBar={props => (
           <TabBar
             {...props}
-            indicatorStyle={{ backgroundColor: '#006E1C', height: 3 }}
-            style={{ backgroundColor: '#fff' }}
+            indicatorStyle={{ backgroundColor: 'transparent', height: 3 }}
+            style={{
+              backgroundColor: '#F4FBF1CC',
+              elevation: 0,      // Android shadow remove
+              shadowOpacity: 0,  // iOS shadow remove
+              borderBottomWidth: 0,
+              borderTopWidth: 0,
+            }}
             activeColor="#006E1C"
             inactiveColor="#888"
             labelStyle={{ fontWeight: '600', textTransform: 'none' }}
@@ -162,7 +168,7 @@ const RecentCall = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F4FBF1CC',
   },
   messagesHeader: {
     flexDirection: 'row',
@@ -183,7 +189,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
-    marginHorizontal: 10,
+    marginHorizontal: 20,
     marginVertical: 6,
     backgroundColor: 'white',
     borderRadius: 12,

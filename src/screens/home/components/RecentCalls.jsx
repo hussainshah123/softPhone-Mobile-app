@@ -156,8 +156,11 @@ const styles = StyleSheet.create({
   avatarContainer: {
     width: 70,
     height: 70,
-    borderRadius: 35,
-    backgroundColor: '#006E1C',
+    // borderRadius: 35,
+    // bordercolor: '#4CAF50',
+    borderColor:'#4CAF50',
+    borderWidth:2,
+    borderRadius:50,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -166,7 +169,7 @@ const styles = StyleSheet.create({
   initials: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#4CAF50',
   },
 
   name: {

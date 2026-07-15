@@ -124,7 +124,7 @@ const DialPad = ({ navigation }) => {
             </View>
 
             <TouchableOpacity style={styles.callButton} onPress={handleCall}>
-                <CallIcon width={25} height={25} fill="white" />
+                <CallIcon width={20} height={20} fill="#45d469" />
             </TouchableOpacity>
         </View>
     )
@@ -133,9 +133,9 @@ const DialPad = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'white',
+        backgroundColor: '#F4FBF1CC',
         alignItems: 'center',
-        
+
     },
     header: {
         flexDirection: 'row',
@@ -163,13 +163,13 @@ const styles = StyleSheet.create({
         marginLeft: 120,
     },
     displayContainer: {
-        marginTop:50,
+        marginTop: 50,
         width: '100%',
         alignItems: 'center',
         // marginBottom: 20,
         position: 'relative',
     },
-     headerAvatar: {
+    headerAvatar: {
         width: 32,
         height: 32,
         borderRadius: 16,
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     },
     phoneNumberText: {
         fontSize: 32,
-        paddingHorizontal:35,
+        paddingHorizontal: 35,
         fontWeight: '600',
         color: '#333',
         textAlign: 'center',
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     dialPadContainer: {
-        marginTop:20,
+        marginTop: 20,
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'center',
@@ -199,13 +199,14 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: '#F1F3F4',
+        borderWidth: 1.5,
+        borderColor: '#e6e9eb',
         justifyContent: 'center',
         alignItems: 'center',
         margin: 10,
     },
     dialNumber: {
-        fontSize: 26,
+        fontSize: 20,
         fontWeight: '600',
         color: '#333',
     },
@@ -218,14 +219,15 @@ const styles = StyleSheet.create({
         width: 70,
         height: 70,
         borderRadius: 35,
-        backgroundColor: '#006E1C',
+        borderWidth: 1,
+        borderColor: '#45d469',
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#45d469',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
+        // shadowColor: '#0b3315',
+        // shadowOffset: { width: 0, height: 4 },
+        // shadowOpacity: 0.3,
+        // shadowRadius: 8,
+        // elevation: 8,
     },
 })
 
