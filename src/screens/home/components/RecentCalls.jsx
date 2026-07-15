@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { getCallHistory } from '../../../services/callHistoryService';
+import { startCall } from '../../../utils/callHelper';
 
 const RecentCalls = ({ navigation, data }) => {
   const [callHistory, setCallHistory] = useState([]);
@@ -104,7 +105,10 @@ const RecentCalls = ({ navigation, data }) => {
             .toUpperCase();
 
           return (
-            <View style={styles.item}>
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => startCall(navigation, item.number, item.name)}
+            >
               <View style={styles.avatarContainer}>
                 <Text style={styles.initials}>{initials}</Text>
               </View>
@@ -112,7 +116,7 @@ const RecentCalls = ({ navigation, data }) => {
               <Text style={styles.name} numberOfLines={1}>
                 {item.name}
               </Text>
-            </View>
+            </TouchableOpacity>
           );
         }}
       />

@@ -13,7 +13,8 @@ import Header from '../../components/Header';
 import { FilterIcon, NotificationIcon } from '../../utils/svgs/CommonSvgs';
 import { getCallHistory } from '../../services/callHistoryService';
 import { saveFavorite, removeFavorite, isFavorite } from '../../services/favoritesService';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { startCall } from '../../utils/callHelper';
 
 const { width } = Dimensions.get('window');
 
@@ -38,6 +39,7 @@ const formatTime = (timestamp) => {
 }
 
 const RecentCallHistory = () => {
+  const navigation = useNavigation();
   const [index, setIndex] = useState(0);
   const [allCalls, setAllCalls] = useState([]);
   const [favorites, setFavorites] = useState(new Set());
@@ -131,7 +133,10 @@ const RecentCallHistory = () => {
             <Text style={styles.favoriteButtonIcon}>{isFav ? '⭐' : '☆'}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.callButton}>
+          <TouchableOpacity
+            style={styles.callButton}
+            onPress={() => startCall(navigation, item.number, item.name)}
+          >
             <Text style={styles.callButtonIcon}>📞</Text>
           </TouchableOpacity>
         </View>

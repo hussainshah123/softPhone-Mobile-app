@@ -60,6 +60,31 @@ const OutgoingCall = ({ route, navigation }) => {
         setTimeout(() => {
           returnToApp()
         }, 2000)
+      } else if (event?.state === 'busy') {
+        // Remote party is busy or rejected the call. The native module speaks
+        // "The user you are calling is busy. Please try again later." — we hold
+        // the screen briefly so the announcement can play, then end the call.
+        setCallStatus('User is busy, please try again')
+        saveCallHistory({
+          name: displayName,
+          number: phoneNumber,
+          type: 'missed',
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }).catch(err => console.error('[OutgoingCall] Save failed:', err))
+        setTimeout(() => {
+          returnToApp()
+        }, 4500)
+      } else if (event?.state === 'no_answer') {
+        setCallStatus('No answer, please try again')
+        saveCallHistory({
+          name: displayName,
+          number: phoneNumber,
+          type: 'missed',
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }).catch(err => console.error('[OutgoingCall] Save failed:', err))
+        setTimeout(() => {
+          returnToApp()
+        }, 4500)
       } else if (event?.state === 'failed') {
         setCallStatus('Call failed')
         saveCallHistory({

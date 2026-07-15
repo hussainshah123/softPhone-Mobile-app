@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StatusBar, StyleSheet, Text } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { HeadphoneIcon, SplashIcon } from '../../utils/svgs/CommonSvgs';
 import firebaseService from '../../services/firebaseService';
@@ -35,6 +35,7 @@ const Splash = ({ navigation }) => {
             end={{ x: 0.5, y: 1 }}
             style={styles.container}
         >
+            <StatusBar barStyle="dark-content" backgroundColor="#7ED957" />
            <SplashIcon/>
 
             <Text style={styles.heading}>Fortphone</Text>

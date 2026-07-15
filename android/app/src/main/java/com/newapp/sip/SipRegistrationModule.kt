@@ -12,6 +12,12 @@ class SipRegistrationModule(private val reactContext: ReactApplicationContext) :
 
     private val executor = Executors.newSingleThreadExecutor()
 
+    // Call-control commands (hangup / cancel / answer / decline) run on their own
+    // thread so they are never queued behind a blocking outgoing makeCall(), which
+    // occupies [executor] until the INVITE gets a final response. This is what lets
+    // the user cancel a ringing call in real time.
+    private val controlExecutor = Executors.newSingleThreadExecutor()
+
     init {
         SipSession.setReactContext(reactContext)
     }
@@ -22,6 +28,8 @@ class SipRegistrationModule(private val reactContext: ReactApplicationContext) :
         SipSession.setReactContext(null)
         RtpAudioManager.stop()
         RingtoneHelper.stop()
+        CallToneHelper.stop()
+        VoiceAnnouncer.shutdown()
         super.invalidate()
     }
 
@@ -102,7 +110,7 @@ class SipRegistrationModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun hangupCall(promise: Promise) {
-        executor.execute {
+        controlExecutor.execute {
             try {
                 SipSession.hangupCall()
                 promise.resolve("Call ended")
@@ -114,7 +122,7 @@ class SipRegistrationModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun answerCall(promise: Promise) {
-        executor.execute {
+        controlExecutor.execute {
             try {
                 val result = SipSession.answerIncomingCall()
                 promise.resolve(result)
@@ -126,7 +134,7 @@ class SipRegistrationModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun declineCall(promise: Promise) {
-        executor.execute {
+        controlExecutor.execute {
             try {
                 SipSession.declineIncomingCall()
                 promise.resolve("Call declined")

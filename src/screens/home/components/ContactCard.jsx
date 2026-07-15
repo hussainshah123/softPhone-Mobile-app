@@ -7,8 +7,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { CallIcon, PhoneAcceptIcon, VideoCallIcon } from '../../../utils/svgs/CommonSvgs';
+import { useNavigation } from '@react-navigation/native';
+import { startCall } from '../../../utils/callHelper';
 
 const ContactCard = ({ item }) => {
+  const navigation = useNavigation();
   const initials = (item.name || item.number || '?')
     .split(' ')
     .slice(0, 2)
@@ -19,7 +22,10 @@ const ContactCard = ({ item }) => {
   const hasImage = item.image && item.image.startsWith('http');
 
   return (
-    <TouchableOpacity style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => startCall(navigation, item.number, item.name)}
+    >
       {hasImage ? (
         <Image
           source={{ uri: item.image }}
@@ -36,7 +42,10 @@ const ContactCard = ({ item }) => {
       </Text>
 
       <View style={styles.iconContainer}>
-        <TouchableOpacity style={styles.callicon}>
+        <TouchableOpacity
+          style={styles.callicon}
+          onPress={() => startCall(navigation, item.number, item.name)}
+        >
           <PhoneAcceptIcon />
         </TouchableOpacity>
         {/* <TouchableOpacity style={styles.VideoIcon}>
