@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 object SipSession {
-    const val VERSION = "11"
+    const val VERSION = "14"
 
     private const val TAG = "SIP"
     private const val TIMEOUT_MS = 15000
@@ -68,6 +68,12 @@ object SipSession {
         val inviteBranch: String = "",
         val toUri: String = "",
         val inviteToHeader: String = "",
+        // In-dialog routing details captured once the dialog is established, needed
+        // to build a BYE the remote party will accept (RFC 3261 §15.1):
+        //  - remoteTarget: the remote Contact URI, used as the BYE Request-URI
+        //  - remoteUri: the remote party's AOR, used in the BYE To/From header
+        val remoteTarget: String = "",
+        val remoteUri: String = "",
     )
 
     data class SdpData(
@@ -106,6 +112,12 @@ object SipSession {
     @Volatile private var sawProvisionalForCurrentCall: Boolean = false
     @Volatile private var cancelRequested: Boolean = false
     private val cancelSent = AtomicBoolean(false)
+    // Early media: audio the gateway streams over a 183/180 BEFORE the call is
+    // answered (ringback, "the number is busy", "not answering" announcements).
+    // Playing it lets the caller hear what is happening and hang up themselves.
+    @Volatile private var earlyMediaActive: Boolean = false
+    @Volatile private var earlyMediaIp: String = ""
+    @Volatile private var earlyMediaPort: Int = 0
     @Volatile private var incomingCallAddress: InetAddress? = null
     @Volatile private var incomingCallPort: Int = 0
     private val responseWaiters = ConcurrentHashMap<String, ArrayBlockingQueue<SipResponse>>()
@@ -115,14 +127,20 @@ object SipSession {
 
     private fun awaitFinalResponse(callId: String, cseq: Int, method: String): SipResponse {
         val key = responseKey(callId, cseq, method)
-        val queue = ArrayBlockingQueue<SipResponse>(4)
+        // A real PSTN gateway can burst many 1xx ringback responses. Keep the queue
+        // large so a final response (e.g. 486/603 when the callee rejects) is never
+        // pushed out — see routeResponse for the never-drop-a-response guarantee.
+        val queue = ArrayBlockingQueue<SipResponse>(32)
         responseWaiters[key] = queue
 
         try {
-            // The INVITE deadline is extended each time a provisional (1xx) response
-            // arrives so the phone can keep ringing while we wait for the callee to
-            // answer, instead of giving up after the short transaction timeout.
+            // On the first provisional (1xx) for an INVITE the deadline is extended
+            // ONCE to the ring timeout so the phone can keep ringing while the callee
+            // decides. It is deliberately NOT re-extended on later provisionals —
+            // otherwise a gateway that keeps sending 180/183 ringback would keep the
+            // caller ringing forever even after the callee rejected the call.
             var deadline = System.currentTimeMillis() + TIMEOUT_MS
+            var ringDeadlineSet = false
             while (System.currentTimeMillis() < deadline) {
                 val remaining = deadline - System.currentTimeMillis()
                 val response = queue.poll(remaining, TimeUnit.MILLISECONDS)
@@ -132,12 +150,19 @@ object SipSession {
                     Log.d(TAG, "[DEBUG-INVITE] Provisional ${response.statusCode} ${response.reasonPhrase} for $method")
                     if (method == "INVITE") {
                         sawProvisionalForCurrentCall = true
-                        deadline = System.currentTimeMillis() + RING_TIMEOUT_MS
+                        if (!ringDeadlineSet) {
+                            deadline = System.currentTimeMillis() + RING_TIMEOUT_MS
+                            ringDeadlineSet = true
+                        }
                         if (response.statusCode in listOf(180, 183)) {
                             sawRingingForCurrentCall = true
                             activeCall?.let { call ->
                                 emitCallState("ringing", call.callId, call.remoteNumber)
                             }
+                            // If this provisional carries SDP, play the early media so
+                            // the caller hears the carrier's ringback / busy / no-answer
+                            // announcement and can decide to hang up.
+                            startEarlyMedia(response)
                         }
                         // A CANCEL requested before any provisional response could not be
                         // sent yet (RFC 3261 §9.1). Now the server has acknowledged the
@@ -175,7 +200,14 @@ object SipSession {
 
         val waiter = responseWaiters[key]
         if (waiter != null) {
-            waiter.offer(response)
+            // Never silently drop a response: a full queue would otherwise lose the
+            // final response (e.g. the callee's reject) and leave the caller ringing
+            // forever. If the queue is full, evict the oldest (a stale provisional)
+            // to make room so the newest — possibly the terminating response — lands.
+            if (!waiter.offer(response)) {
+                waiter.poll()
+                waiter.offer(response)
+            }
             return
         }
 
@@ -359,7 +391,7 @@ object SipSession {
                     }
                     CallState.INCOMING -> {
                         // Ringing incoming call -> decline it.
-                        sendResponse(currentSocket, call.inviteRaw, 603, "Decline", call.toTag)
+                        sendFinalResponseReliably(currentSocket, call.inviteRaw, 603, "Decline", call.toTag)
                         RtpAudioManager.stop()
                         RingtoneHelper.stop()
                         activeCall = null
@@ -421,7 +453,7 @@ object SipSession {
             val call = activeCall ?: return@execute
             val currentSocket = socket ?: return@execute
             try {
-                sendResponse(currentSocket, call.inviteRaw, 603, "Decline", call.toTag)
+                sendFinalResponseReliably(currentSocket, call.inviteRaw, 603, "Decline", call.toTag)
                 RtpAudioManager.stop()
                 RingtoneHelper.stop()
                 emitCallState("ended", call.callId, call.remoteNumber)
@@ -633,6 +665,12 @@ object SipSession {
         val remoteNumber = extractSipUser(fromHeader) ?: "Unknown"
         val remoteDisplay = extractDisplayName(fromHeader) ?: remoteNumber
 
+        // In-dialog routing for a future BYE: the caller's Contact is the request
+        // target, and their From URI is the remote AOR (RFC 3261 §12.1.1).
+        val contactHeader = parsed.headers["contact"]?.firstOrNull().orEmpty()
+        val remoteUri = extractSipUri(fromHeader) ?: "sip:$remoteNumber@$host"
+        val remoteTarget = extractSipUri(contactHeader) ?: remoteUri
+
         val sdp = parseSdp(extractMessageBody(raw))
         val remoteIp = sdp.remoteIp
         val remotePort = sdp.remotePort
@@ -654,6 +692,8 @@ object SipSession {
             inviteRaw = raw,
             remoteIp = remoteIp,
             remotePort = remotePort,
+            remoteTarget = remoteTarget,
+            remoteUri = remoteUri,
         )
 
         callState = CallState.INCOMING
@@ -683,6 +723,9 @@ object SipSession {
         cancelSent.set(false)
         sawProvisionalForCurrentCall = false
         sawRingingForCurrentCall = false
+        earlyMediaActive = false
+        earlyMediaIp = ""
+        earlyMediaPort = 0
 
         activeCall = ActiveCall(
             callId = callId,
@@ -749,12 +792,14 @@ object SipSession {
                 val sdp = parseSdp(extractMessageBody(response.raw))
                 val toHeaderResp = response.headers["to"]?.firstOrNull().orEmpty()
                 val toTag = toHeaderResp.substringAfter("tag=", "").substringBefore(";").trim()
+                val ackTarget = response.headers["contact"]?.firstOrNull()?.let { extractSipUri(it) } ?: toUri
                 activeCall = activeCall?.copy(
                     remoteIp = sdp.remoteIp,
                     remotePort = sdp.remotePort,
                     toTag = toTag.ifEmpty { null },
+                    remoteTarget = ackTarget,
+                    remoteUri = toUri,
                 )
-                val ackTarget = response.headers["contact"]?.firstOrNull()?.let { extractSipUri(it) } ?: toUri
                 sendAck(socket, callId, fromTag, response, ackTarget)
 
                 // Glare: the user pressed cancel but the call was answered before the
@@ -768,6 +813,14 @@ object SipSession {
                     emitCallState("ended", callId, destination)
                     return "Call ended"
                 }
+
+                // Transition from early media (if any) to the answered call. If the
+                // answered media endpoint moved, restart the stream on it; otherwise
+                // the early-media stream simply continues seamlessly.
+                if (earlyMediaActive && (earlyMediaIp != sdp.remoteIp || earlyMediaPort != sdp.remotePort)) {
+                    RtpAudioManager.stop()
+                }
+                earlyMediaActive = false
 
                 RtpAudioManager.setPayloadType(sdp.payloadType)
                 appContext?.let { RtpAudioManager.start(it, sdp.remoteIp, sdp.remotePort) }
@@ -1007,20 +1060,112 @@ object SipSession {
         sendUdp(socket, message, host, port)
     }
 
+    /**
+     * Starts playing early media carried on a provisional (183 Session Progress or
+     * an 18x with SDP). This is a one-shot per call: once the media stream is up it
+     * keeps running through to the answered call (see the 200 OK handler, which only
+     * restarts the stream if the answered endpoint differs).
+     */
+    private fun startEarlyMedia(response: SipResponse) {
+        if (earlyMediaActive || RtpAudioManager.isRunning()) return
+
+        val body = extractMessageBody(response.raw)
+        if (body.isBlank()) return
+
+        val sdp = parseSdp(body)
+        if (sdp.remoteIp.isBlank() || sdp.remoteIp == "0.0.0.0" || sdp.remotePort <= 0) return
+
+        val ctx = appContext ?: return
+        RtpAudioManager.setPayloadType(sdp.payloadType)
+        RtpAudioManager.start(ctx, sdp.remoteIp, sdp.remotePort)
+        if (RtpAudioManager.isRunning()) {
+            earlyMediaActive = true
+            earlyMediaIp = sdp.remoteIp
+            earlyMediaPort = sdp.remotePort
+            Log.d(TAG, "Early media started -> ${sdp.remoteIp}:${sdp.remotePort} pt=${sdp.payloadType}")
+        } else {
+            Log.w(TAG, "Early media stream failed to start (mic/permission not ready?)")
+        }
+    }
+
+    /**
+     * Tears down an established dialog with a BYE the remote party will accept.
+     *
+     * A BYE is an in-dialog request, so it MUST reuse the dialog's Call-ID and both
+     * tags with the correct local/remote orientation, target the remote Contact URI,
+     * and use a CSeq strictly greater than the INVITE's (RFC 3261 §12.2.1). Because
+     * most servers challenge the BYE, we also complete the digest handshake — without
+     * it the BYE is dropped and the far end keeps ringing / stays connected.
+     */
     private fun sendBye(socket: DatagramSocket, call: ActiveCall) {
+        val isOutgoing = call.direction == "outgoing"
+        // The local tag is the tag WE contributed to the dialog; the remote tag is
+        // the peer's. For an outgoing call we are the From side; for an incoming
+        // call we are the To side, so the tags are swapped.
+        val localTag = if (isOutgoing) call.fromTag else (call.toTag ?: "")
+        val remoteTag = if (isOutgoing) call.toTag else call.fromTag
+        val remoteUri = call.remoteUri.ifEmpty { "sip:${call.remoteNumber}@$host" }
+        val requestUri = call.remoteTarget.ifEmpty { remoteUri }
+        val cseq = call.inviteCseq + 1
+
+        sendByeMessage(socket, call, requestUri, remoteUri, localTag, remoteTag, cseq, null, null)
+
+        try {
+            var response = awaitFinalResponse(call.callId, cseq, "BYE")
+            Log.d(TAG, "BYE response: ${response.statusCode} ${response.reasonPhrase}")
+
+            if (response.statusCode == 401 || response.statusCode == 407) {
+                val challengeHeader = if (response.statusCode == 401) "www-authenticate" else "proxy-authenticate"
+                val challenge = response.headers[challengeHeader]?.firstOrNull()
+                if (challenge != null) {
+                    val authorization = buildDigestAuth(
+                        challenge = challenge,
+                        username = username,
+                        password = password,
+                        method = "BYE",
+                        uri = requestUri,
+                    )
+                    val authCseq = cseq + 1
+                    sendByeMessage(socket, call, requestUri, remoteUri, localTag, remoteTag, authCseq, authorization, response.statusCode)
+                    response = awaitFinalResponse(call.callId, authCseq, "BYE")
+                    Log.d(TAG, "Authenticated BYE response: ${response.statusCode} ${response.reasonPhrase}")
+                }
+            }
+        } catch (error: Exception) {
+            // No response (or timeout): the datagram was still sent, so the far end
+            // usually still tears down. Log and continue teardown regardless.
+            Log.w(TAG, "No final response to BYE for ${call.callId}: ${error.message}")
+        }
+    }
+
+    private fun sendByeMessage(
+        socket: DatagramSocket,
+        call: ActiveCall,
+        requestUri: String,
+        remoteUri: String,
+        localTag: String,
+        remoteTag: String?,
+        cseq: Int,
+        authorization: String?,
+        authStatusCode: Int?,
+    ) {
         val branch = "z9hG4bK${randomHex(12)}"
-        val toUri = "sip:${call.remoteNumber}@${call.remoteIp}"
         val message = buildString {
-            append("BYE $toUri SIP/2.0\r\n")
+            append("BYE $requestUri SIP/2.0\r\n")
             append("Via: SIP/2.0/UDP $localIp:$localPort;branch=$branch;rport\r\n")
             append("Max-Forwards: 70\r\n")
-            append("To: <${toUri}>${if (!call.toTag.isNullOrBlank()) ";tag=${call.toTag}" else ""}\r\n")
-            append("From: \"$username\" <$fromUri>;tag=${call.fromTag}\r\n")
+            append("To: <$remoteUri>${if (!remoteTag.isNullOrBlank()) ";tag=$remoteTag" else ""}\r\n")
+            append("From: \"$username\" <$fromUri>;tag=$localTag\r\n")
             append("Call-ID: ${call.callId}\r\n")
-            append("CSeq: 1 BYE\r\n")
+            append("CSeq: $cseq BYE\r\n")
+            if (authorization != null) {
+                val authHeader = if (authStatusCode == 407) "Proxy-Authorization" else "Authorization"
+                append("$authHeader: $authorization\r\n")
+            }
             append("Content-Length: 0\r\n")
             append("\r\n")
         }
+        Log.d(TAG, "Sending BYE (CSeq $cseq) for call ${call.callId} -> $requestUri")
         sendUdp(socket, message, host, port)
     }
 
@@ -1120,6 +1265,31 @@ object SipSession {
         }
         sendUdp(socket, message, host, port)
         Log.d(TAG, "Sent ACK (CSeq $cseqNumber) for call $callId to $host:$port")
+    }
+
+    /**
+     * Sends a final non-2xx response (e.g. 603 Decline / 486 Busy) and retransmits
+     * it a few times. We do not wait for the ACK, and a single UDP datagram is easily
+     * lost — if the caller never receives our rejection it keeps ringing forever.
+     * The extra copies are harmless: a duplicate final response is simply re-ACKed.
+     */
+    private fun sendFinalResponseReliably(
+        socket: DatagramSocket,
+        requestRaw: String,
+        statusCode: Int,
+        reasonPhrase: String,
+        toTag: String? = null,
+    ) {
+        sendResponse(socket, requestRaw, statusCode, reasonPhrase, toTag)
+        for (attempt in 1..3) {
+            scheduler.schedule({
+                try {
+                    sendResponse(socket, requestRaw, statusCode, reasonPhrase, toTag)
+                } catch (error: Exception) {
+                    Log.w(TAG, "Retransmit of $statusCode response failed", error)
+                }
+            }, attempt * 400L, TimeUnit.MILLISECONDS)
+        }
     }
 
     private fun sendResponse(
@@ -1241,6 +1411,9 @@ object SipSession {
         callState = CallState.NONE
         cancelRequested = false
         cancelSent.set(false)
+        earlyMediaActive = false
+        earlyMediaIp = ""
+        earlyMediaPort = 0
         responseWaiters.clear()
         RtpAudioManager.stop()
         RingtoneHelper.stop()

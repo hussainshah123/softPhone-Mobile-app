@@ -35,7 +35,7 @@ const ensureNativeModule = async () => {
         const nativeVersion = await SipRegistration.getVersion()
         log('Native SIP module version:', nativeVersion)
 
-        if (String(nativeVersion) !== '11') {
+        if (String(nativeVersion) !== '14') {
             throw new Error(
                 `Outdated native SIP module (v${nativeVersion}). Run: cd android && gradlew clean && cd .. && npx react-native run-android`
             )
