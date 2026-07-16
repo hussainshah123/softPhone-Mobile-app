@@ -11,7 +11,7 @@ import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { SearchIcon } from '../../utils/svgs/CommonSvgs';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { getCallHistory } from '../../services/callHistoryService';
-import { startCall } from '../../utils/callHelper';
+import { startCall, formatDuration } from '../../utils/callHelper';
 
 const { width } = Dimensions.get('window');
 
@@ -59,6 +59,7 @@ const CallItem = ({ item, navigation }) => {
           <Text style={[styles.callType, { color: iconColor }]}>{icon}</Text>
           <Text style={styles.time} numberOfLines={1}>
             {formatTime(item.timestamp)}
+            {item.duration > 0 ? ` · ${formatDuration(item.duration)}` : ''}
           </Text>
         </View>
       </View>

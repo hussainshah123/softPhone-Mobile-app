@@ -14,7 +14,7 @@ import { FilterIcon, NotificationIcon } from '../../utils/svgs/CommonSvgs';
 import { getCallHistory } from '../../services/callHistoryService';
 import { saveFavorite, removeFavorite, isFavorite } from '../../services/favoritesService';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { startCall } from '../../utils/callHelper';
+import { startCall, formatDuration } from '../../utils/callHelper';
 
 const { width } = Dimensions.get('window');
 
@@ -72,6 +72,7 @@ const RecentCallHistory = () => {
           name: call.name,
           subtitle: call.number,
           time: formatTime(call.timestamp || Date.now()),
+          duration: call.duration || 0,
           type: call.type,
           ...getCallIcon(call.type)
         }));
@@ -121,7 +122,10 @@ const RecentCallHistory = () => {
           <View style={styles.callDetails}>
             <Text style={styles.callName}>{item.name}</Text>
             <Text style={styles.callSubtitle}>{item.subtitle}</Text>
-            <Text style={styles.callTime}>{item.time}</Text>
+            <Text style={styles.callTime}>
+              {item.time}
+              {item.duration > 0 ? ` · ${formatDuration(item.duration)}` : ''}
+            </Text>
           </View>
         </View>
 

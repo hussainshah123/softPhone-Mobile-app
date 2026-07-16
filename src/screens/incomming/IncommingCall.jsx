@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Alert, PermissionsAndroid, Platform } from 'react-native'
 import { PhoneAcceptIcon, PhoneDeclineIcon, SpeakerIcon, MuteIcon } from '../../utils/svgs/CommonSvgs'
 import { answerCall, declineCall, hangupCall, onCallState, toggleSpeaker, toggleMute } from '../../services/sipService'
 import { saveCallHistory } from '../../services/callHistoryService'
+import { formatDuration } from '../../utils/callHelper'
 
 const IncommingCall = ({ route, navigation }) => {
   const { phoneNumber, callerName, destination } = route.params || {}
@@ -11,23 +12,47 @@ const IncommingCall = ({ route, navigation }) => {
   const [callStatus, setCallStatus] = useState('Incoming Call...')
   const [isSpeakerOn, setIsSpeakerOn] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
+  const [duration, setDuration] = useState(0)
+  const callStartRef = useRef(null)
+  const durationTimerRef = useRef(null)
+
+  // Begin counting connected time once the call connects; ticks the mm:ss timer.
+  const startDurationTimer = () => {
+    if (callStartRef.current) return
+    callStartRef.current = Date.now()
+    durationTimerRef.current = setInterval(() => {
+      setDuration(Math.floor((Date.now() - callStartRef.current) / 1000))
+    }, 1000)
+  }
+
+  // Total connected seconds so far (0 if the call was never answered).
+  const getCallDuration = () =>
+    callStartRef.current ? Math.floor((Date.now() - callStartRef.current) / 1000) : 0
 
   useEffect(() => {
     const unsubscribe = onCallState((event) => {
       if (event?.state === 'connected') {
         setCallStatus('Connected')
+        startDurationTimer()
       } else if (event?.state === 'ended' || event?.state === 'failed' || event?.state === 'declined') {
         saveCallHistory({
           name: displayName,
           number: phoneNumber,
           type: event?.state === 'ended' ? 'incoming' : 'missed',
+          duration: getCallDuration(),
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }).catch(err => console.error('[IncomingCall] Save failed:', err))
         navigation.popToTop()
       }
     })
 
-    return unsubscribe
+    return () => {
+      unsubscribe()
+      if (durationTimerRef.current) {
+        clearInterval(durationTimerRef.current)
+        durationTimerRef.current = null
+      }
+    }
   }, [navigation, phoneNumber, displayName])
 
   const requestRecordPermission = async () => {
@@ -101,6 +126,7 @@ const IncommingCall = ({ route, navigation }) => {
       await answerCall()
       console.log('[IncomingCall] Answer command successful')
       setCallStatus('Connected')
+      startDurationTimer()
     } catch (error) {
       console.error('[IncomingCall] Answer failed:', error?.message || error)
       Alert.alert('Error', 'Failed to answer call')
@@ -124,6 +150,7 @@ const IncommingCall = ({ route, navigation }) => {
         name: displayName,
         number: phoneNumber,
         type: 'incoming',
+        duration: getCallDuration(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       })
       console.log('[IncomingCall] Call history saved')
@@ -166,7 +193,12 @@ const IncommingCall = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.incomingText}>{callStatus}</Text>
+      <Text style={[styles.incomingText, callStatus === 'Connected' && styles.incomingTextConnected]}>
+        {callStatus}
+      </Text>
+      {callStatus === 'Connected' ? (
+        <Text style={styles.durationText}>{formatDuration(duration)}</Text>
+      ) : null}
 
       <View style={styles.avatarContainer}>
         <View style={styles.avatar}>
@@ -239,6 +271,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#5B403E',
     marginBottom: 90,
+  },
+  incomingTextConnected: {
+    marginBottom: 8,
+  },
+  durationText: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#006E1C',
+    marginBottom: 74,
+    fontVariant: ['tabular-nums'],
   },
   avatarContainer: {
     marginBottom: 20,

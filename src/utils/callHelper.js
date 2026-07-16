@@ -3,6 +3,27 @@ import { Alert } from 'react-native'
 import { makeCall } from '../services/sipService'
 
 /**
+ * Formats a call duration given in seconds into a mm:ss (or h:mm:ss) string,
+ * e.g. 75 -> "01:15", 3665 -> "1:01:05". Used on the call screens (live timer)
+ * and in the call history list.
+ *
+ * @param {number} totalSeconds - elapsed call time in seconds
+ * @returns {string} formatted duration
+ */
+export const formatDuration = (totalSeconds) => {
+    const secs = Math.max(0, Math.floor(Number(totalSeconds) || 0))
+    const hours = Math.floor(secs / 3600)
+    const minutes = Math.floor((secs % 3600) / 60)
+    const seconds = secs % 60
+    const pad = (n) => String(n).padStart(2, '0')
+
+    if (hours > 0) {
+        return `${hours}:${pad(minutes)}:${pad(seconds)}`
+    }
+    return `${pad(minutes)}:${pad(seconds)}`
+}
+
+/**
  * Starts an outgoing call to the given number from anywhere in the app
  * (recent calls, favorites, history, etc.).
  *

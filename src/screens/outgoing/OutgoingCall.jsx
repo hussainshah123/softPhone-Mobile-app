@@ -4,6 +4,7 @@ import LinearGradient from 'react-native-linear-gradient'
 import { PhoneDeclineIcon, SpeakerIcon, MuteIcon } from '../../utils/svgs/CommonSvgs'
 import { hangupCall, onCallState, toggleSpeaker, toggleMute } from '../../services/sipService'
 import { saveCallHistory } from '../../services/callHistoryService'
+import { formatDuration } from '../../utils/callHelper'
 
 const OutgoingCall = ({ route, navigation }) => {
   const { phoneNumber, callerName } = route.params || {}
@@ -11,7 +12,24 @@ const OutgoingCall = ({ route, navigation }) => {
   const [callStatus, setCallStatus] = useState('Calling...')
   const [isSpeakerOn, setIsSpeakerOn] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
+  const [duration, setDuration] = useState(0)
   const navigatedBack = useRef(false)
+  const callStartRef = useRef(null)
+  const durationTimerRef = useRef(null)
+
+  // Begin counting the connected time. Called once when the call connects; the
+  // interval ticks the on-screen mm:ss timer every second.
+  const startDurationTimer = () => {
+    if (callStartRef.current) return
+    callStartRef.current = Date.now()
+    durationTimerRef.current = setInterval(() => {
+      setDuration(Math.floor((Date.now() - callStartRef.current) / 1000))
+    }, 1000)
+  }
+
+  // Total connected seconds so far (0 if the call never connected).
+  const getCallDuration = () =>
+    callStartRef.current ? Math.floor((Date.now() - callStartRef.current) / 1000) : 0
 
   const returnToApp = () => {
     if (navigatedBack.current) {
@@ -49,6 +67,7 @@ const OutgoingCall = ({ route, navigation }) => {
         setCallStatus('Ringing...')
       } else if (event?.state === 'connected') {
         setCallStatus('Connected')
+        startDurationTimer()
       } else if (event?.state === 'declined') {
         setCallStatus('Call Declined')
         saveCallHistory({
@@ -103,13 +122,20 @@ const OutgoingCall = ({ route, navigation }) => {
           name: displayName,
           number: phoneNumber,
           type: 'outgoing',
+          duration: getCallDuration(),
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }).catch(err => console.error('[OutgoingCall] Save on ended failed:', err))
         returnToApp()
       }
     })
 
-    return unsubscribe
+    return () => {
+      unsubscribe()
+      if (durationTimerRef.current) {
+        clearInterval(durationTimerRef.current)
+        durationTimerRef.current = null
+      }
+    }
   }, [navigation, phoneNumber, displayName])
 
   const requestRecordPermission = async () => {
@@ -152,6 +178,7 @@ const OutgoingCall = ({ route, navigation }) => {
         name: displayName,
         number: phoneNumber,
         type: 'outgoing',
+        duration: getCallDuration(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       })
       console.log('[OutgoingCall] Call history saved')
@@ -195,7 +222,12 @@ const OutgoingCall = ({ route, navigation }) => {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <Text style={styles.outgoingText}>{callStatus}</Text>
+      <Text style={[styles.outgoingText, callStatus === 'Connected' && styles.outgoingTextConnected]}>
+        {callStatus}
+      </Text>
+      {callStatus === 'Connected' ? (
+        <Text style={styles.durationText}>{formatDuration(duration)}</Text>
+      ) : null}
 
       <View style={styles.avatarContainer}>
         <View style={styles.avatar}>
@@ -256,6 +288,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#FFFFFF',
     marginBottom: 90,
+  },
+  outgoingTextConnected: {
+    marginBottom: 8,
+  },
+  durationText: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 74,
+    fontVariant: ['tabular-nums'],
   },
   avatarContainer: {
     marginBottom: 20,
