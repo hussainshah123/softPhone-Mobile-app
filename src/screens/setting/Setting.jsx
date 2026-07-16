@@ -21,6 +21,7 @@ import { useFocusEffect } from '@react-navigation/native';
 const Setting = ({ navigation }) => {
     const [isDND, setIsDND] = useState(true);
     const [loading, setLoading] = useState(true);
+    const [isConnected, setIsConnected] = useState(sipConnectionManager.isConnectionActive());
     const [credentials, setCredentials] = useState({
         username: 'User',
         port: '5060',
@@ -39,6 +40,11 @@ const Setting = ({ navigation }) => {
             loadCredentials();
         }, [])
     );
+
+    useEffect(() => {
+        const unsubscribe = sipConnectionManager.onConnectionStatusChange(setIsConnected);
+        return unsubscribe;
+    }, []);
 
     const loadCredentials = async () => {
         try {
@@ -98,7 +104,14 @@ const Setting = ({ navigation }) => {
                             <View style={styles.profileInfo}>
                                 <Text style={styles.profileName}>{credentials.username}</Text>
                                 <Text style={styles.profileEmail}>Port: {credentials.port}</Text>
-                                <Text style={styles.registrationStatus}>✓ Connected</Text>
+                                <Text
+                                    style={[
+                                        styles.registrationStatus,
+                                        !isConnected && styles.registrationStatusDisconnected,
+                                    ]}
+                                >
+                                    {isConnected ? '✓ Connected' : '● Disconnected'}
+                                </Text>
                             </View>
                         </>
                     )}
@@ -154,7 +167,9 @@ const Setting = ({ navigation }) => {
                             cancelText: 'Cancel',
                             onConfirm: async () => {
                                 try {
-                                    sipConnectionManager.stopConnectionMonitoring();
+                                    // Unregister from the SIP server first so the
+                                    // account is no longer shown as connected.
+                                    await sipConnectionManager.stopConnectionMonitoring();
                                     const userId = await firebaseService.getStoredUserId();
                                     if (userId) {
                                         await firebaseService.logoutUser(userId);
@@ -165,7 +180,7 @@ const Setting = ({ navigation }) => {
                                     });
                                 } catch (error) {
                                     console.error('Logout error:', error);
-                                    sipConnectionManager.stopConnectionMonitoring();
+                                    await sipConnectionManager.stopConnectionMonitoring();
                                     await firebaseService.clearCredentials();
                                     navigation.reset({
                                         index: 0,
@@ -256,6 +271,9 @@ const styles = StyleSheet.create({
         color: '#22c55e',
         fontWeight: '600',
         marginTop: 4,
+    },
+    registrationStatusDisconnected: {
+        color: '#B61723',
     },
     registeredBadge: {
         backgroundColor: '#22c55e',

@@ -1,5 +1,5 @@
 import { AppState } from 'react-native';
-import { registerSIP, onRegistrationState } from './sipService';
+import { registerSIP, unregisterSIP, onRegistrationState } from './sipService';
 import firebaseService from './firebaseService';
 
 const LOG_TAG = '[SIPConnectionManager]';
@@ -10,9 +10,24 @@ let isConnected = false;
 let connectionCheckInterval = null;
 let autoReconnectTimeout = null;
 let appState = AppState.currentState;
+const statusListeners = new Set();
 
 const log = (...args) => console.log(LOG_TAG, ...args);
 const logError = (...args) => console.error(LOG_TAG, ...args);
+
+const setConnected = (value) => {
+  if (isConnected === value) {
+    return;
+  }
+  isConnected = value;
+  statusListeners.forEach((handler) => {
+    try {
+      handler(isConnected);
+    } catch (error) {
+      logError('Status listener error:', error.message);
+    }
+  });
+};
 
 const CONNECTION_CHECK_INTERVAL = 30000; // 30 seconds
 const RECONNECT_DELAY = 5000; // 5 seconds
@@ -129,14 +144,14 @@ const sipConnectionManager = {
       log(`Registration state: ${state} - ${message}`);
 
       if (state === 'registered' || state === 'ok') {
-        isConnected = true;
+        setConnected(true);
         reconnectAttempts = 0;
         log('✓ SIP successfully connected');
       } else if (state === 'failed' || state === 'failure') {
-        isConnected = false;
+        setConnected(false);
         log('✗ SIP connection failed, will retry on app foreground');
       } else if (state === 'unregistered') {
-        isConnected = false;
+        setConnected(false);
         log('SIP unregistered');
       }
     });
@@ -172,7 +187,7 @@ const sipConnectionManager = {
     }
   },
 
-  stopConnectionMonitoring() {
+  async stopConnectionMonitoring() {
     log('Stopping SIP connection monitoring...');
 
     this.stopConnectionPolling();
@@ -192,9 +207,29 @@ const sipConnectionManager = {
       autoReconnectTimeout = null;
     }
 
-    isConnected = false;
+    // Tell the SIP server we are gone (REGISTER expires=0) so the account
+    // is not shown as connected after logout.
+    try {
+      await unregisterSIP();
+      log('SIP unregistered from server');
+    } catch (error) {
+      logError('Failed to unregister from SIP server:', error.message);
+    }
+
+    setConnected(false);
     reconnectAttempts = 0;
     log('SIP connection monitoring stopped');
+  },
+
+  onConnectionStatusChange(handler) {
+    statusListeners.add(handler);
+    // Emit current status immediately so the UI is in sync on mount.
+    try {
+      handler(isConnected);
+    } catch (error) {
+      logError('Status listener error:', error.message);
+    }
+    return () => statusListeners.delete(handler);
   },
 
   isConnectionActive() {

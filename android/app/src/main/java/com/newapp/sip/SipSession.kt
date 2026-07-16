@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 object SipSession {
-    const val VERSION = "10"
+    const val VERSION = "11"
 
     private const val TAG = "SIP"
     private const val TIMEOUT_MS = 15000
@@ -839,6 +839,7 @@ object SipSession {
         socket: DatagramSocket,
         requestUri: String,
         challengeResponse: SipResponse,
+        expiresOverride: Int? = null,
     ): SipResponse {
         val challengeHeader = if (challengeResponse.statusCode == 401) {
             "www-authenticate"
@@ -863,6 +864,7 @@ object SipSession {
             cseq = cseq,
             authorization = authorization,
             authStatusCode = challengeResponse.statusCode,
+            expiresOverride = expiresOverride,
         )
 
         return if (running.get()) {
@@ -1178,26 +1180,54 @@ object SipSession {
     }
 
     private fun stopInternal(sendUnregister: Boolean) {
-        running.set(false)
-        registered.set(false)
         refreshTask?.cancel(false)
         refreshTask = null
+        registered.set(false)
 
         val currentSocket = socket
+        // Send the de-registration (REGISTER with Expires: 0) BEFORE tearing down.
+        // SIP servers reject an unauthenticated REGISTER with 401/407, so we must
+        // complete the digest handshake and wait for the 200 OK — otherwise the
+        // server keeps the binding until it naturally expires and the account keeps
+        // showing as connected after logout. We keep the listener thread alive here
+        // so responses are routed through awaitFinalResponse (same path the periodic
+        // refresh uses); only after the 200 OK do we set running=false and close.
         if (sendUnregister && currentSocket != null && username.isNotEmpty()) {
             try {
+                val cseq = registerCseq.getAndIncrement()
                 sendRegister(
                     socket = currentSocket,
                     requestUri = sipUri,
-                    cseq = registerCseq.getAndIncrement(),
+                    cseq = cseq,
                     authorization = null,
                     authStatusCode = null,
                     expiresOverride = 0,
                 )
+
+                var response = awaitFinalResponse(registerCallId, cseq, "REGISTER")
+                Log.d(TAG, "Unregister response: ${response.statusCode} ${response.reasonPhrase}")
+
+                if (response.statusCode == 401 || response.statusCode == 407) {
+                    response = sendAuthenticatedRegister(
+                        socket = currentSocket,
+                        requestUri = sipUri,
+                        challengeResponse = response,
+                        expiresOverride = 0,
+                    )
+                    Log.d(TAG, "Authenticated unregister response: ${response.statusCode} ${response.reasonPhrase}")
+                }
+
+                if (response.statusCode == 200) {
+                    Log.d(TAG, "Successfully unregistered from SIP server")
+                } else {
+                    Log.w(TAG, "Unregister not accepted: ${response.statusCode} ${response.reasonPhrase}")
+                }
             } catch (error: Exception) {
                 Log.w(TAG, "Failed to send unregister", error)
             }
         }
+
+        running.set(false)
 
         try {
             currentSocket?.close()
