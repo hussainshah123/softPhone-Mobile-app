@@ -11,7 +11,7 @@ import {
 import { getCallHistory } from '../../../services/callHistoryService';
 import { startCall } from '../../../utils/callHelper';
 
-const RecentCalls = ({ navigation, data }) => {
+const RecentCalls = ({ navigation }) => {
   const [callHistory, setCallHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,8 +51,8 @@ const RecentCalls = ({ navigation, data }) => {
     }
   };
 
-  // Always use loaded data, ignore data prop when we have loaded history
-  const displayData = callHistory.length > 0 ? callHistory : (data || []);
+  // Only show real call history; no dummy fallback
+  const displayData = callHistory;
 
   if (loading) {
     return (

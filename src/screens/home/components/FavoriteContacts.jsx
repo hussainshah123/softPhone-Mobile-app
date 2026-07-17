@@ -13,7 +13,7 @@ import { FavrateIcon } from '../../../utils/svgs/CommonSvgs';
 import { getFavorites } from '../../../services/favoritesService';
 import { useFocusEffect } from '@react-navigation/native';
 
-const FavoriteContacts = ({ navigation, data }) => {
+const FavoriteContacts = ({ navigation }) => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,8 +37,8 @@ const FavoriteContacts = ({ navigation, data }) => {
     }
   };
 
-  // Always use loaded data, ignore data prop when we have loaded favorites
-  const displayData = favorites.length > 0 ? favorites : (data || []);
+  // Only show real favorites; no dummy fallback
+  const displayData = favorites;
 
   if (loading) {
     return (
