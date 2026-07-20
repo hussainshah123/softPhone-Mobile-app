@@ -61,7 +61,7 @@ const Onboarding = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F4FBF1CC',
+        backgroundColor: '#000000',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingVertical: 60,

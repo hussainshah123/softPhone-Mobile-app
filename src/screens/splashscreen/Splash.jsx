@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { StatusBar, StyleSheet, Text, Animated, Easing } from 'react-native';
+import { StatusBar, StyleSheet, Text, Animated, Easing, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { HeadphoneIcon, SplashIcon } from '../../utils/svgs/CommonSvgs';
 import firebaseService from '../../services/firebaseService';
@@ -90,13 +90,13 @@ const Splash = ({ navigation }) => {
     }, [navigation]);
 
     return (
-        <LinearGradient
-            colors={['#7ED957', '#4CAF50']}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
+        <View
+            // colors={['#7ED957', '#4CAF50']}
+            // start={{ x: 0.5, y: 0 }}
+            // end={{ x: 0.5, y: 1 }}
             style={styles.container}
         >
-            <StatusBar barStyle="dark-content" backgroundColor="#7ED957" />
+            {/* <StatusBar barStyle="dark-content" backgroundColor="##000000" /> */}
 
             <Animated.View
                 style={{
@@ -120,7 +120,7 @@ const Splash = ({ navigation }) => {
                     Crystal Clear Calls, Anywhere
                 </Text>
             </Animated.View>
-        </LinearGradient>
+        </View>
     );
 };
 
@@ -129,6 +129,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor:'#000000'
     },
     heading: {
         marginTop: 20,

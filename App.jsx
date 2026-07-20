@@ -27,12 +27,12 @@ const App = () => {
   return (
     <NavigationContainer ref={navigationRef}>
       <StatusBar
-        barStyle="dark-content"
-        backgroundColor="#F4FBF1"
+        barStyle="light-content"
+        backgroundColor="#000000"
       />
       <Stack />
     </NavigationContainer>
   );
 }
-
+ 
 export default App;
