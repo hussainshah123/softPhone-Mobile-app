@@ -35,7 +35,7 @@ export default SearchBar;
 const styles = StyleSheet.create({
     container: {
         height: 52,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#363636',
         borderRadius: 10,
         flexDirection: 'row',
         alignItems: 'center',

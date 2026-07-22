@@ -133,13 +133,13 @@ const SipAccountScreen = ({ navigation }) => {
             <Header
                 title="SIP Account"
                 titleStyle={{
-                    color: 'black',
+                    color: 'white',
                     textAlign: 'center',
                 }}
                 containerStyle={{ marginTop: 20 }}
                 leftComponent={
                     <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <BackIcon />
+                        <BackIcon fill="white"/>
                     </TouchableOpacity>
                 }
                 rightComponent={
@@ -231,7 +231,7 @@ const SipAccountScreen = ({ navigation }) => {
                                 value={port}
                                 onChangeText={setPort}
                                 placeholder="Enter port"
-                                placeholderTextColor="#999"
+                                placeholderTextColor="white"
                                 keyboardType="number-pad"
                             />
                         </View>
@@ -270,7 +270,7 @@ const SipAccountScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F4FBF1CC',
+        backgroundColor: 'black',
     },
     centerContent: {
         justifyContent: 'center',
@@ -285,6 +285,8 @@ const styles = StyleSheet.create({
     headerAvatar: {
         width: 32,
         height: 32,
+        borderWidth:1,
+        borderColor:"white",
         borderRadius: 16,
     },
     scrollContent: {
@@ -297,7 +299,7 @@ const styles = StyleSheet.create({
     },
     section: {
         marginTop: 20,
-        backgroundColor: 'white',
+        backgroundColor: '#1F1F1F',
         paddingVertical: 10,
         paddingHorizontal: 10,
         borderColor: '#006E1C',
@@ -308,7 +310,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 22,
         fontWeight: '700',
-        color: '#333',
+        color: 'white',
         marginBottom: 16,
     },
     portinput: {
@@ -318,22 +320,25 @@ const styles = StyleSheet.create({
     },
     inputContainer: {
         flex: 1,
+        
         marginBottom: 16,
     },
     udpcontainer: {
         flex: 1,
+        
         marginBottom: 16,
     },
 
     label: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#333',
+        color: '#9b9898',
         marginBottom: 8,
     },
     input: {
-        backgroundColor: '#fff',
+        backgroundColor: '#6F6E6D66',
         borderRadius: 25,
+        color:'white',
         paddingHorizontal: 16,
         paddingVertical: 14,
         fontSize: 16,
@@ -343,7 +348,9 @@ const styles = StyleSheet.create({
     passwordContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        // backgroundColor: '#fff',
+        backgroundColor:'#6F6E6D66',
+
         borderRadius: 25,
         borderWidth: 0.5,
         borderColor: '#006E1C',
@@ -359,7 +366,8 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
     },
     dropdownContainer: {
-        backgroundColor: '#fff',
+        backgroundColor:'#6F6E6D66',
+        
         borderRadius: 25,
         flex: 1,
         paddingHorizontal: 16,
@@ -372,7 +380,7 @@ const styles = StyleSheet.create({
     },
     dropdownText: {
         fontSize: 16,
-        color: '#333',
+        color: '#e6dddd',
     },
     dropdownArrow: {
         fontSize: 12,

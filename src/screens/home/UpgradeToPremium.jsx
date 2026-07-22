@@ -46,9 +46,9 @@ const UpgradeToPremium = () => {
 
         {/* Pricing Card */}
         <LinearGradient
-          colors={['#94F990', '#4CAF50']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+         colors={['#F9F9FF', '#000000']}
+            start={{ x: 0, y: 2 }}
+            end={{ x: 2, y: 2 }}
           style={styles.pricingCard}
         >
           <Text style={styles.pricingTitle}>Premium Subscription</Text>
@@ -101,7 +101,7 @@ const UpgradeToPremium = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4FBF1CC',
+    backgroundColor: 'black',
   },
   scrollView: {
     flex: 1,
@@ -122,13 +122,13 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
-    color: '#006E1C',
+    color: 'white',
     fontWeight: 'bold',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#000',
+    color: 'white',
   },
   headerSpacer: {
     width: 40,
@@ -142,12 +142,12 @@ const styles = StyleSheet.create({
   pricingTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: 'black',
     marginBottom: 8,
   },
   pricingDescription: {
     fontSize: 16,
-    color: '#fff',
+    color: 'black',
     textAlign: 'center',
     marginBottom: 16,
     opacity: 0.9,
@@ -159,11 +159,11 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 30,
     fontWeight: '700',
-    color: '#fff',
+    color: 'black',
   },
   period: {
     fontSize: 18,
-    color: '#fff',
+    color: 'black',
     marginLeft: 4,
     opacity: 0.9,
   },
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   featureCard: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: 'black',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: 'white',
     marginBottom: 4,
   },
   featureDescription: {

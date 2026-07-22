@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1F1F1F',
+    color: 'white',
   },
 
   seeAll: {

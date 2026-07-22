@@ -25,13 +25,13 @@ const CallQualityScreen = ({ navigation }) => {
             <Header
                 title="Call Quality"
                 titleStyle={{
-                    color: 'black',
+                    color: 'white',
                     textAlign: 'center',
                 }}
                 containerStyle={{ marginTop: 20 }}
                 leftComponent={
                     <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <BackIcon />
+                        <BackIcon  fill="white"/>
                     </TouchableOpacity>
                 }
             />
@@ -136,7 +136,7 @@ const CallQualityScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F4FBF1CC',
+        backgroundColor: 'black',
     },
     scrollContent: {
         paddingBottom: 30,
@@ -146,12 +146,14 @@ const styles = StyleSheet.create({
         marginVertical: 10,
         borderRadius: 10,
         paddingVertical: 10,
-        backgroundColor: "white",
+        backgroundColor:"#1F1F1F",
+        // backgroundColor: "white",
         borderColor: '#22c55e',
         borderWidth: 0.2
     },
     status: {
-        textAlign: 'center'
+        textAlign: 'center',
+        color:'white'
     },
     statusSection: {
         alignItems: 'center',
@@ -171,16 +173,16 @@ const styles = StyleSheet.create({
     statusTitle: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#333',
+        color: '#006E1C',
         marginBottom: 8,
     },
     statusDescription: {
         fontSize: 14,
-        color: '#666',
+        color: '#6F7A6B',
         textAlign: 'center',
     },
     metricsSection: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1F1F1F',
         marginHorizontal: 16,
         borderRadius: 12,
         padding: 20,
@@ -197,7 +199,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#006E1C1A',
+        backgroundColor: 'white',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 16,
@@ -207,16 +209,16 @@ const styles = StyleSheet.create({
     },
     metricLabel: {
         fontSize: 14,
-        color: '#666',
+        color: 'white',
         flex: 1,   // ye add karo
     },
     metricValue: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#333',
+        color: 'white',
     },
     toggleSection: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1F1F1F',
         marginHorizontal: 16,
         borderRadius: 12,
         padding: 20,
@@ -236,7 +238,7 @@ const styles = StyleSheet.create({
     toggleTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: 'white',
         marginBottom: 4,
     },
     toggleDescription: {

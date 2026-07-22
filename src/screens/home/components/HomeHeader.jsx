@@ -29,7 +29,7 @@ const HomeHeader = () => {
       </View>
 
       <TouchableOpacity>
-        <NotificationIcon />
+        <NotificationIcon fill="white"/>
       </TouchableOpacity>
     </View>
   );
@@ -53,6 +53,8 @@ const styles = StyleSheet.create({
   avatar: {
     width: 48,
     height: 48,
+    borderWidth:1,
+    borderColor:"white",
     borderRadius: 24,
     marginRight: 12,
   },
@@ -60,10 +62,11 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F1F1F',
+    color: 'white',
   },
 
   name: {
     fontWeight: '700',
+    color:"white"
   },
 });

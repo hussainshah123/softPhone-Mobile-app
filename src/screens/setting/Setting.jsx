@@ -69,7 +69,7 @@ const Setting = ({ navigation }) => {
             <Header
                 title="Profile"
                 titleStyle={{
-                    color: '#006E1C',
+                    color: 'white',
                     textAlign: 'center',
                 }}
                 // containerStyle={{ marginTop: 20 }}
@@ -79,7 +79,7 @@ const Setting = ({ navigation }) => {
                 //         style={styles.headerAvatar}
                 //     />
                 // }
-                rightComponent={<NotificationIcon />}
+                rightComponent={<NotificationIcon fill="white"/>}
             />
             <ScrollView
                 showsVerticalScrollIndicator={false}
@@ -213,7 +213,7 @@ const Setting = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F4FBF1CC',
+        backgroundColor: 'black',
     },
     scrollContent: {
         paddingBottom: 30,
@@ -258,6 +258,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         textAlign: 'left',
         fontWeight: '700',
+        color:'white',
         marginBottom: 4,
     },
     profileEmail: {
@@ -265,6 +266,7 @@ const styles = StyleSheet.create({
         color: '#666',
         textAlign: 'left',
         marginVertical: 2,
+        color:'white'
     },
     registrationStatus: {
         fontSize: 12,
@@ -299,7 +301,7 @@ const styles = StyleSheet.create({
         paddingLeft: 4,
     },
     menuItem: {
-        backgroundColor: '#fff',
+        backgroundColor: '#353535',
         flexDirection: 'row',
         marginVertical: 10,
         borderRadius: 10,
@@ -307,20 +309,21 @@ const styles = StyleSheet.create({
         // padding: 16,
         paddingVertical: 15,
         paddingHorizontal: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
+        // borderBottomWidth: 1,
+        // borderBottomColor: '#f0f0f0',
     },
     menuIcon: {
         fontSize: 22,
         // width: 30,
         padding: 15,
         borderRadius: 50,
-        backgroundColor: "#006E1C1A",
+        backgroundColor: "white",
         marginRight: 12,
     },
     menuText: {
         flex: 1,
         fontSize: 16,
+        color:'white',
         fontWeight: '500',
     },
     menuSubText: {

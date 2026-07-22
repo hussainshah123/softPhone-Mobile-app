@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#222',
+    color: 'white',
     marginBottom: 15,
   },
   seeall: {
@@ -174,13 +174,13 @@ const styles = StyleSheet.create({
 
   name: {
     fontSize: 13,
-    color: '#555',
+    color: 'white',
     maxWidth: 70,
   },
 
   emptyText: {
     fontSize: 14,
-    color: '#999',
+    color: 'white',
     paddingVertical: 20,
   },
 });

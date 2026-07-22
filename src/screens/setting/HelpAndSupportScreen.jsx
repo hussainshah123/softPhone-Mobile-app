@@ -39,13 +39,13 @@ const HelpAndSupportScreen = ({ navigation }) => {
             <Header
                 title="Help & Support"
                 titleStyle={{
-                    color: 'black',
+                    color: 'white',
                     textAlign: 'center',
                 }}
                 containerStyle={{ marginTop: 20 }}
                 leftComponent={
                     <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <BackIcon />
+                        <BackIcon fill="white"/>
                     </TouchableOpacity>
                 }
             />
@@ -79,6 +79,7 @@ const HelpAndSupportScreen = ({ navigation }) => {
                             <DownArrowIcon
                                 width={12}
                                 height={12}
+                                fill={"white"}
                                 style={[
                                     styles.faqArrow,
                                     expandedFaq === faq.id && styles.faqArrowRotated
@@ -117,7 +118,7 @@ const HelpAndSupportScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F4FBF1CC',
+        backgroundColor: 'black',
     },
     scrollContent: {
         paddingBottom: 30,
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: '#1B1B1B',
         marginHorizontal: 16,
         marginTop: 20,
         paddingHorizontal: 16,
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     },
     section: {
         marginTop: 24,
-        backgroundColor: 'white',
+        backgroundColor: '#1B1B1B',
         paddingVertical: 10,
         paddingHorizontal: 10,
         borderRadius: 20,
@@ -153,11 +154,11 @@ const styles = StyleSheet.create({
         fontSize: 22,
         // fontWeight: '700',
         fontWeight: 'bold',
-        color: '#006E1C',
+        color: 'white',
         marginBottom: 16,
     },
     faqItem: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1B1B1B',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
     },
     faqQuestion: {
         fontSize: 16,
-        color: '#333',
+        color: 'white',
         flex: 1,
     },
     faqArrow: {

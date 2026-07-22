@@ -7,9 +7,9 @@ const PremiumCard = () => {
     const navigation = useNavigation();
     return (
         <LinearGradient
-            colors={['#B7F57A', '#7ED957']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            colors={['#F9F9FF', '#000000']}
+            start={{ x: 0, y: 2 }}
+            end={{ x: 2, y: 2 }}
             style={styles.card}
         >
             <View style={styles.header}>
@@ -64,25 +64,27 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#fff',
+        color: 'black',
     },
 
     subtitle: {
         fontSize: 13,
-        color: '#fff',
+        color: 'black',
         marginTop: 2,
     },
 
     badge: {
-        backgroundColor: 'rgba(255,255,255,.25)',
+        backgroundColor: 'black',
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 20,
+        borderWidth:1,
+        borderColor:'white',
         alignSelf: 'flex-start',
     },
 
     badgeText: {
-        color: '#fff',
+        color: '#0EB438',
         fontWeight: '600',
         fontSize: 12,
     },
@@ -90,9 +92,11 @@ const styles = StyleSheet.create({
     button: {
         marginTop: 20,
         alignSelf: 'flex-start',
-        backgroundColor: '#fff',
+        backgroundColor: 'black',
         paddingHorizontal: 22,
         paddingVertical: 10,
+        borderWidth:1,
+        borderColor:'white',
         borderRadius: 30,
     },
 

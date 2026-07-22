@@ -127,7 +127,7 @@ const Contact = () => {
       {/* Header */}
       <Header
         title="Contacts"
-        titleStyle={{ color: '#151C27', textAlign: 'center' }}
+        titleStyle={{ color: 'white', textAlign: 'center' }}
         containerStyle={{ marginTop: 20 }}
         leftComponent={
           <Image
@@ -159,7 +159,7 @@ const Contact = () => {
             {...props}
             indicatorStyle={{ backgroundColor: 'transparent', height: 3 }}
             style={{
-              backgroundColor: '#F4FBF1CC',
+              backgroundColor: 'black',
               elevation: 0,      // Android shadow remove
               shadowOpacity: 0,  // iOS shadow remove
               borderBottomWidth: 0,
@@ -178,7 +178,7 @@ const Contact = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4FBF1CC',
+    backgroundColor: 'black',
   },
   headerAvatar: {
     width: 32,
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F4FBF1CC',
+    backgroundColor: '#1F1F1F',
     borderRadius: 10,
     paddingHorizontal: 12,
     marginHorizontal: 16,
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: 'white',
+    backgroundColor: '#1F1F1F',
     marginVertical: 6,
     marginHorizontal: 10,
     borderRadius: 12,
@@ -250,9 +250,11 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     marginBottom: 2,
+    color:'white'
   },
   contactSubtitle: {
     fontSize: 14,
+    color:'white',
     color: '#666',
   },
   callButton: {

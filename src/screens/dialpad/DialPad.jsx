@@ -103,7 +103,7 @@ const DialPad = ({ navigation }) => {
                 </Text>
                 {phoneNumber.length > 0 && (
                     <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-                        <BackspaceIcon width={24} height={24} />
+                        <BackspaceIcon width={24} height={24} fill={"white"}/>
                     </TouchableOpacity>
                 )}
             </View>
@@ -133,7 +133,7 @@ const DialPad = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F4FBF1CC',
+        backgroundColor: 'black',
         alignItems: 'center',
 
     },
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
         fontSize: 32,
         paddingHorizontal: 35,
         fontWeight: '600',
-        color: '#333',
+        color: 'white',
         textAlign: 'center',
     },
     deleteButton: {
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     dialNumber: {
         fontSize: 20,
         fontWeight: '600',
-        color: '#333',
+        color: 'white',
     },
     dialLetters: {
         fontSize: 10,

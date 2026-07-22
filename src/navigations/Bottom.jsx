@@ -19,6 +19,7 @@ const Bottom = () => {
                 tabBarInactiveTintColor: '#7A7A7A',
                 tabBarStyle: {
                     height: 70,
+                    backgroundColor:'#1F1F1F',
                     paddingBottom: 8,
                     paddingTop: 8,
                     borderTopWidth: 0,

@@ -203,7 +203,7 @@ const RecentCallHistory = () => {
     <View style={styles.container}>
       <Header
         title="Recent Calls history"
-        titleStyle={{ color: 'black', textAlign: 'center' }}
+        titleStyle={{ color: 'white', textAlign: 'center' }}
         containerStyle={{ marginTop: 20 }}
         leftComponent={
           <Image
@@ -211,17 +211,17 @@ const RecentCallHistory = () => {
             style={styles.headerAvatar}
           />
         }
-        rightComponent={<NotificationIcon />}
+        rightComponent={<NotificationIcon fill="white" />}
       />
 
       {/* Title */}
       <View style={styles.titleRow}>
         <Text style={styles.title}>Recent Calls</Text>
-        <TouchableOpacity>
+        {/* <TouchableOpacity>
           <View style={styles.filterIcon}>
             <FilterIcon />
           </View>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Tab View */}
@@ -259,7 +259,7 @@ const RecentCallHistory = () => {
                   }}>
                   <Text
                     style={{
-                      color: isActive ? '#fff' : '#8A8A8A',
+                      color: isActive ? '#fff' : '#fff',
                       fontWeight: '600',
                     }}>
                     {route.title}
@@ -277,11 +277,13 @@ const RecentCallHistory = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4FBF1CC',
+    backgroundColor: 'black',
   },
   headerAvatar: {
     width: 32,
     height: 32,
+    borderWidth: 1,
+    borderColor: 'white',
     borderRadius: 16,
   },
   titleRow: {
@@ -293,6 +295,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    color: 'white',
     fontWeight: '700',
   },
   filterIcon: {
@@ -305,7 +308,7 @@ const styles = StyleSheet.create({
   callCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: 'black',
     padding: 14,
     borderRadius: 12,
     marginBottom: 12,
@@ -334,16 +337,17 @@ const styles = StyleSheet.create({
   },
   callName: {
     fontSize: 17,
+    color:'white',
     fontWeight: '600',
   },
   callSubtitle: {
     fontSize: 14,
-    color: '#555',
+    color: 'white',
     marginTop: 2,
   },
   callTime: {
     fontSize: 13,
-    color: '#888',
+    color: '#b9b5b5',
     marginTop: 2,
   },
   buttonGroup: {

@@ -211,7 +211,11 @@ const Slider = ({ navigation }) => {
 
     const slides = [
         {
-            image: require('../../assets/images/first.png'),
+            images: [
+                require('../../assets/images/sliderone.png'),
+                require('../../assets/images/slidertwo.png'),
+                require('../../assets/images/sliderthree.png'),
+            ],
             title: 'Connect',
             description: 'Human-Centric Connectivity.'
         },
@@ -262,7 +266,15 @@ const Slider = ({ navigation }) => {
             >
                 {slides.map((slide, index) => (
                     <View key={index} style={[styles.slide, { width: width }]}>
-                        <Image source={slide.image} style={styles.image} resizeMode="contain" />
+                        {slide.images ? (
+                            <View style={styles.collage}>
+                                <Image source={slide.images[0]} style={styles.collageGreen} resizeMode="contain" />
+                                <Image source={slide.images[1]} style={styles.collageWoman} resizeMode="contain" />
+                                <Image source={slide.images[2]} style={styles.collageMan} resizeMode="contain" />
+                            </View>
+                        ) : (
+                            <Image source={slide.image} style={styles.image} resizeMode="contain" />
+                        )}
                         <Text style={styles.text}>{slide.title}</Text>
                         <Text style={styles.textsm}>{slide.description}</Text>
                     </View>
@@ -301,7 +313,7 @@ const Slider = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#000000',
     },
     scrollView: {
         flex: 1,
@@ -317,9 +329,40 @@ const styles = StyleSheet.create({
         width: 400,
         height: 400,
     },
+    collage: {
+        width: '100%',
+        aspectRatio: 402 / 520,
+        position: 'relative',
+        alignSelf: 'center',
+    },
+    // Back: mint/green card, top-right
+    collageGreen: {
+        position: 'absolute',
+        left: '24%',
+        top: '0%',
+        width: '72%',
+        height: '76%',
+    },
+    // Middle: woman on phone, left
+    collageWoman: {
+        position: 'absolute',
+        left: '0%',
+        top: '13%',
+        width: '70%',
+        height: '74%',
+    },
+    // Front: smiling man, center
+    collageMan: {
+        position: 'absolute',
+        left: '32%',
+        top: '26%',
+        width: '66%',
+        height: '74%',
+    },
     text: {
         fontSize: 24,
         fontWeight: 'bold',
+        color:'white',
         // fontFamily:"PlusJakartaSans-BoldItalic",
         textAlign: 'center',
         marginTop: 20,
@@ -327,7 +370,7 @@ const styles = StyleSheet.create({
     textsm: {
         textAlign: 'center',
         fontSize: 16,
-        color: '#5B403E',
+        color: '#5A6557',
         marginVertical: 10,
         paddingHorizontal: 10,
     },

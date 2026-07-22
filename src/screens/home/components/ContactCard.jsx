@@ -62,7 +62,7 @@ export default ContactCard;
 const styles = StyleSheet.create({
   card: {
     width: '48%',
-    backgroundColor: '#fff',
+    backgroundColor: '#36363694',
     borderRadius: 20,
     padding: 18,
     marginBottom: 15,
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#222',
+    color: 'white',
     maxWidth: '100%',
   },
 

@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     alertContainer: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#363636',
         borderRadius: 20,
         padding: 24,
         width: '100%',
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
+        color: 'white',
         textAlign: 'center',
         marginBottom: 8,
     },

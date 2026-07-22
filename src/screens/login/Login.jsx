@@ -119,7 +119,7 @@ const Login = ({ navigation }) => {
                         <TextInput
                             style={styles.textInput}
                             placeholder="Sip Username"
-                            placeholderTextColor="#999"
+                            placeholderTextColor="#FFFFFF"
                             value={formData.sipUsername}
                             onChangeText={(text) => {
                                 setFormData({ ...formData, sipUsername: text });
@@ -144,7 +144,7 @@ const Login = ({ navigation }) => {
                         <TextInput
                             style={styles.textInput}
                             placeholder="Sip Server URL"
-                            placeholderTextColor="#999"
+                            placeholderTextColor="#FFFFFF"
                             value={formData.sipServer}
                             onChangeText={(text) => {
                                 setFormData({ ...formData, sipServer: text });
@@ -167,7 +167,7 @@ const Login = ({ navigation }) => {
                         <TextInput
                             style={styles.textInput}
                             placeholder="Sip Port Number"
-                            placeholderTextColor="#999"
+                            placeholderTextColor="#FFFFFF"
                             value={formData.port}
                             onChangeText={(text) => {
                                 setFormData({ ...formData, port: text });
@@ -198,7 +198,7 @@ const Login = ({ navigation }) => {
                         <TextInput
                             style={styles.textInput}
                             placeholder="Sip Password"
-                            placeholderTextColor="#999"
+                            placeholderTextColor="#FFFFFF"
                             secureTextEntry={!showPassword}
                             value={formData.sipPassword}
                             onChangeText={(text) => {
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         paddingHorizontal: 10,
-        backgroundColor: "white",
+        backgroundColor: "#000000",
 
     },
     innerContainer: {
@@ -297,13 +297,14 @@ const styles = StyleSheet.create({
     heading: {
         fontSize: 24,
         fontWeight: 'bold',
+        color:'white',
         textAlign: 'center',
         marginBottom: 8,
     },
     inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FCF9F1',
+        backgroundColor: '#363636',
         borderRadius: 25,
         height: 50,
         paddingHorizontal: 15,
@@ -313,12 +314,12 @@ const styles = StyleSheet.create({
     textInput: {
         flex: 1,
         fontSize: 16,
-        color: '#000',
+        color: '#FFFFFF',
         marginLeft: 10,
     },
     subheading: {
         fontSize: 14,
-        color: '#666',
+        color: '#6F7A6B',
         textAlign: 'center',
         marginBottom: 30,
     },
@@ -334,9 +335,10 @@ const styles = StyleSheet.create({
     input: {
         width: '100%',
         height: 50,
+        backgroundColor:'red',
         // borderWidth: 1,
         // marginVertical: 10,
-        backgroundColor: "#FCF9F1",
+        // backgroundColor: "#363636",
         // borderColor: '#DDD',
         borderRadius: 25,
         paddingHorizontal: 10,
